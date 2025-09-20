@@ -4,64 +4,563 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NutriGuide - AI Nutrition Planner</title>
-
-    <!-- External Libraries & Fonts -->
+    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js for beautiful charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Link to your custom stylesheet -->
-    <link rel="stylesheet" href="style.css">
+    <!-- Custom CSS for theme and animations -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* bg-gray-900 */
+            --bg-light: #d1d5db; /* gray-300 */
+            --bg-dark: #374151; /* gray-700 */
+            --clr: #6366f1; /* indigo-500 */
+            --clr-alpha: #4b556360; /* gray-600 with alpha */
+        }
+
+        /* Simple fade-in animation for form steps and dashboard */
+        .view-section, .modal-section {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Custom scrollbar for a better dark mode experience */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1f2937; /* bg-gray-800 */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4f46e5; /* indigo-600 */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6366f1; /* indigo-500 */
+        }
+
+        /* From Uiverse.io by bociKond - Adapted for dark theme */
+        .form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            width: 100%;
+        }
+
+        .form .input-span {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form input[type="email"],
+        .form input[type="password"] {
+            border-radius: 0.5rem;
+            padding: 1rem 0.75rem;
+            width: 100%;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: var(--clr-alpha);
+            outline: 2px solid var(--bg-dark);
+            color: var(--bg-light); /* Added for text visibility */
+        }
+
+        .form input[type="email"]:focus,
+        .form input[type="password"]:focus {
+            outline: 2px solid var(--clr);
+        }
+
+        .label {
+            align-self: flex-start;
+            color: var(--clr);
+            font-weight: 600;
+        }
+
+        .form .submit {
+            padding: 1rem 0.75rem;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            border-radius: 3rem;
+            background-color: var(--bg-dark);
+            color: var(--bg-light);
+            border: none;
+            cursor: pointer;
+            transition: all 300ms;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .form .submit:hover {
+            background-color: var(--clr);
+            color: var(--bg-dark);
+        }
+
+        .span {
+            text-decoration: none;
+            color: var(--bg-dark);
+        }
+
+        .span a {
+            color: var(--clr);
+        }
+
+        /* From Uiverse.io by codebykay101 - Adapted */
+        .glass-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 250px; /* Give the container space */
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .glass-container .glass {
+            position: relative;
+            width: 180px;
+            height: 200px;
+            background: linear-gradient(#fff2, transparent);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 25px rgba(0, 0, 0, 0.25);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: 0.5s;
+            border-radius: 10px;
+            margin: 0 -45px;
+            backdrop-filter: blur(10px);
+            transform: rotate(calc(var(--r) * 1deg));
+            cursor: pointer;
+        }
+
+        .glass-container:hover .glass {
+            transform: rotate(0deg);
+            margin: 0 10px;
+        }
+
+        .glass-container .glass::before {
+            content: attr(data-text);
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+        }
+        .glass-container .glass:hover {
+            box-shadow: 0 0 15px 5px rgba(16, 185, 129, 0.4), 0 0 5px 1px rgba(110, 231, 183, 0.3) inset;
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+        .glass-container .glass svg {
+            width: 4rem;
+            height: 4rem;
+            fill: #fff;
+        }
+
+        /* Back Button styles - Adapted from Uiverse.io by karthik092726122003 */
+        .back-button-wrapper {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            z-index: 10;
+        }
+        
+        .page-back-button {
+             margin-bottom: 2rem;
+        }
+
+        .back-button-wrapper-bottom {
+            display: flex;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .styled-button {
+            display: block;
+            position: relative;
+            width: 60px;
+            height: 60px;
+            margin: 0;
+            overflow: hidden;
+            outline: none;
+            background-color: transparent;
+            cursor: pointer;
+            border: 0;
+        }
+
+        .styled-button:before {
+            content: "";
+            position: absolute;
+            border-radius: 50%;
+            inset: 7px;
+            border: 3px solid var(--bg-light);
+            transition: opacity 0.4s cubic-bezier(0.77, 0, 0.175, 1) 80ms, transform 0.5s cubic-bezier(0.455, 0.03, 0.515, 0.955) 80ms;
+        }
+
+        .styled-button:after {
+            content: "";
+            position: absolute;
+            border-radius: 50%;
+            inset: 7px;
+            border: 4px solid var(--clr);
+            transform: scale(1.3);
+            transition: opacity 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            opacity: 0;
+        }
+
+        .styled-button:hover:before,
+        .styled-button:focus:before {
+            opacity: 0;
+            transform: scale(0.7);
+            transition: opacity 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .styled-button:hover:after,
+        .styled-button:focus:after {
+            opacity: 1;
+            transform: scale(1);
+            transition: opacity 0.4s cubic-bezier(0.77, 0, 0.175, 1) 80ms, transform 0.5s cubic-bezier(0.455, 0.03, 0.515, 0.955) 80ms;
+        }
+
+        .button-box {
+            display: flex;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .button-elem {
+            display: block;
+            width: 24px;
+            height: 24px;
+            margin: 18px;
+            transform: rotate(360deg);
+            color: var(--bg-light);
+        }
+        
+        .button-elem svg {
+             fill: currentColor;
+        }
+
+        .styled-button:hover .button-box,
+        .styled-button:focus .button-box {
+            transition: 0.4s;
+            transform: translateX(-59px);
+        }
+
+        /* Pro Button styles - Adapted from Uiverse.io by Yaya12085 */
+        .pro-button {
+            width: fit-content;
+            display: flex;
+            align-items: center;
+            padding: 0.6em 1.2em;
+            cursor: pointer;
+            gap: 0.4rem;
+            font-weight: bold;
+            border-radius: 30px;
+            text-shadow: 2px 2px 3px rgb(136 0 136 / 50%);
+            background: linear-gradient(15deg, #880088, #aa2068, #cc3f47, #de6f3d, #f09f33, #de6f3d, #cc3f47, #aa2068, #880088) no-repeat;
+            background-size: 300%;
+            color: #fff;
+            border: none;
+            background-position: left center;
+            box-shadow: 0 30px 10px -20px rgba(0,0,0,.2);
+            transition: background .3s ease;
+            font-size: 0.875rem;
+        }
+
+        .pro-button:hover {
+            background-size: 320%;
+            background-position: right center;
+        }
+
+        .pro-button:hover svg {
+            fill: #fff;
+        }
+
+        .pro-button svg {
+            width: 20px;
+            fill: #f09f33;
+            transition: .3s ease;
+        }
+        
+        /* Logout Button - From Uiverse.io by kennyotsu-monochromia */
+        .Btn {
+          display: flex;
+          align-items: center;
+          justify-content: flex-start;
+          width: 45px;
+          height: 45px;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+          position: relative;
+          overflow: hidden;
+          transition-duration: .3s;
+          box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.199);
+          background-color: #ef4444; /* red-500 */
+        }
+
+        .Btn .sign {
+          width: 100%;
+          transition-duration: .3s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .Btn .sign svg {
+          width: 17px;
+        }
+
+        .Btn .sign svg path {
+          fill: #f3f3f3;
+        }
+        
+        .Btn .text {
+          position: absolute;
+          right: 0%;
+          width: 0%;
+          opacity: 0;
+          color: #f3f3f3;
+          font-size: 1.2em;
+          font-weight: 600;
+          transition-duration: .3s;
+        }
+        
+        .Btn:hover {
+          width: 125px;
+          border-radius: 5px;
+          transition-duration: .3s;
+        }
+
+        .Btn:hover .sign {
+          width: 30%;
+          transition-duration: .3s;
+          padding-left: 20px;
+        }
+        
+        .Btn:hover .text {
+          opacity: 1;
+          width: 70%;
+          transition-duration: .3s;
+          padding-right: 10px;
+        }
+        
+        .Btn:active {
+          transform: translate(2px ,2px);
+        }
+
+
+        /* Pro Feature Cards */
+        .pro-feature-card {
+            background-color: #1f2937; /* bg-gray-800 */
+        }
+        
+        .pro-feature-card.unlocked-purple {
+            background-color: #5b21b6; /* bg-purple-800 */
+        }
+        
+        .pro-feature-card.unlocked-purple:hover {
+            background-color: #6d28d9; /* bg-purple-700 */
+        }
+
+        .pro-feature-card.unlocked-teal {
+             background-color: #134e4a; /* bg-teal-800 */
+        }
+        
+        .pro-feature-card.unlocked-teal:hover {
+            background-color: #0f766e; /* bg-teal-700 */
+        }
+
+
+        /* Premium Card Styles - From Uiverse.io by MuhammadHasann */
+        .plan-card {
+            --white: hsl(0, 0%, 100%);
+            --black: hsl(240, 15%, 9%);
+            --paragraph: hsl(0, 0%, 83%);
+            --line: hsl(240, 9%, 17%);
+            --primary: hsl(266, 92%, 58%);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            padding: 1.5rem;
+            width: 19rem;
+            background-color: hsla(240, 15%, 9%, 1);
+            background-image: radial-gradient(at 88% 40%, hsla(240, 15%, 9%, 1) 0px, transparent 85%),
+                              radial-gradient(at 49% 30%, hsla(240, 15%, 9%, 1) 0px, transparent 85%),
+                              radial-gradient(at 14% 26%, hsla(240, 15%, 9%, 1) 0px, transparent 85%),
+                              radial-gradient(at 0% 64%, hsla(263, 93%, 56%, 1) 0px, transparent 85%),
+                              radial-gradient(at 41% 94%, hsla(284, 100%, 84%, 1) 0px, transparent 85%),
+                              radial-gradient(at 100% 99%, hsla(306, 100%, 57%, 1) 0px, transparent 85%);
+            border-radius: 1rem;
+            box-shadow: 0px -16px 24px 0px rgba(255, 255, 255, 0.25) inset;
+        }
+        .plan-card .card__border {
+            overflow: hidden;
+            pointer-events: none;
+            position: absolute;
+            z-index: -10;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: calc(100% + 2px);
+            height: calc(100% + 2px);
+            background-image: linear-gradient(0deg, hsl(0, 0%, 100%) -50%, hsl(0, 0%, 40%) 100%);
+            border-radius: 1rem;
+        }
+        .plan-card .card__border::before {
+            content: "";
+            pointer-events: none;
+            position: fixed;
+            z-index: 200;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transform-origin: center;
+            width: 200%;
+            height: 10rem;
+            background-image: linear-gradient(0deg, hsla(0, 0%, 100%, 0) 0%, hsl(277, 95%, 60%) 40%, hsl(277, 95%, 60%) 60%, hsla(0, 0%, 40%, 0) 100%);
+            animation: rotate 8s linear infinite;
+        }
+        @keyframes rotate { to { transform: translate(-50%, -50%) rotate(360deg); } }
+        .plan-card .card_title__container .card_title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--white);
+        }
+        .plan-card .card_title__container .card_paragraph {
+            margin-top: 0.25rem;
+            width: 80%;
+            font-size: 0.875rem;
+            color: var(--paragraph);
+        }
+        .plan-card .line {
+            width: 100%;
+            height: 0.1rem;
+            background-color: var(--line);
+            border: none;
+        }
+        .plan-card .card__list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .plan-card .card__list .card__list_item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .plan-card .card__list .card__list_item .check,
+        .plan-card .card__list .card__list_item .cross {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 50%;
+        }
+        .plan-card .card__list .card__list_item .check { background-color: var(--primary); }
+        .plan-card .card__list .card__list_item .cross { background-color: #4B5563; }
+
+        .plan-card .card__list .card__list_item .check .check_svg,
+        .plan-card .card__list .card__list_item .cross .cross_svg {
+            width: 0.8rem;
+            height: 0.8rem;
+        }
+        .plan-card .card__list .card__list_item .check .check_svg { fill: var(--black); }
+        .plan-card .card__list .card__list_item .cross .cross_svg { fill: #9CA3AF; }
+
+        .plan-card .card__list .card__list_item .list_text {
+            font-size: 0.875rem;
+            color: var(--white);
+        }
+        .plan-card .card__list .card__list_item .list_text.disabled {
+            color: var(--paragraph);
+            text-decoration: line-through;
+        }
+        .plan-card .card-button {
+            cursor: pointer;
+            margin-top: 1rem;
+            padding: 0.75rem;
+            width: 100%;
+            background-image: linear-gradient(0deg, rgba(94, 58, 238, 1) 0%, rgba(197, 107, 240, 1) 100%);
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--white);
+            border: 0;
+            border-radius: 9999px;
+            box-shadow: inset 0 -2px 25px -4px var(--white);
+        }
+    </style>
 </head>
 <body class="text-gray-200">
 
-    <!-- Main container for the entire application -->
     <div class="container mx-auto p-4 md:p-8 max-w-4xl">
-        
-        <!-- =================================================================
-             NAVIGATION BAR
-             Initially hidden, becomes visible after a successful login.
-        ================================================================== -->
+        <!-- Header/Navbar -->
         <nav id="main-nav" class="hidden flex items-center justify-between mb-8">
-            <!-- Left Side: Logo, Title, and Pro Badge -->
+            <!-- Left: Logo & Title -->
             <div class="flex items-center gap-3">
                 <img src="https://i.ibb.co/2fjvvGQ/Gemini-Generated-Image-st6wocst6wocst6w.png" alt="NutriGuide Logo" class="h-10 w-10">
                 <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">NutriGuide</h1>
                 <span id="pro-badge" class="hidden text-xs font-bold text-purple-400 bg-purple-900/50 px-2 py-1 rounded-full">PRO</span>
             </div>
-            <!-- Center Links (for medium screens and up) -->
+            <!-- Center: Links -->
             <div class="hidden md:flex items-center gap-8 text-gray-300 font-medium">
                 <a href="#" id="home-link" class="hover:text-indigo-400 transition-colors">Home</a>
-                <a href="#" class="hover:text-indigo-400 transition-colors">About</a>
+                <a href="#" id="about-link" class="hover:text-indigo-400 transition-colors">About</a>
                 <a href="#" id="help-link" class="hover:text-indigo-400 transition-colors">Help</a>
             </div>
-            <!-- Right Side: Pro Button & Logout -->
+            <!-- Right: Pro & Logout -->
             <div class="flex items-center gap-4">
-                <button class="pro-button">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 24"><path d="m18 0 8 12 10-8-4 20H4L0 4l10 8 8-12z"></path></svg>
+                <button class="pro-button" id="unlock-pro-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 24">
+                        <path d="m18 0 8 12 10-8-4 20H4L0 4l10 8 8-12z"></path>
+                    </svg>
                     Unlock Pro
                 </button>
-                <button onclick="logout()" class="flex items-center gap-2 px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 hover:text-white transition-colors font-semibold text-sm">
-                    <span>Logout</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                <button class="Btn" onclick="logout()">
+                  <div class="sign"><svg viewBox="0 0 512 512"><path d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L96 96c-17.7 0-32 14.3-32 32l0 256c0 17.7 14.3 32 32 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-64 0c-53 0-96-43-96-96L0 128C0 75 43 32 96 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32z"></path></svg></div>
+                  <div class="text">Logout</div>
                 </button>
             </div>
         </nav>
 
-        <!-- Main content area where different sections will be displayed -->
         <main>
-            <!-- =================================================================
-                 LOGIN SECTION - The first view a user sees.
-            ================================================================== -->
+            <!-- Login Section -->
             <section id="login-section" class="view-section">
                 <div class="bg-gray-800 p-6 md:p-8 rounded-2xl shadow-2xl shadow-indigo-900/20 max-w-md mx-auto">
                     <h2 class="text-2xl font-semibold mb-2 text-center">Welcome to NutriGuide</h2>
                     <p class="text-gray-400 mb-6 text-center">Please log in to access your personalized plan.</p>
                     <form class="form" id="login-form">
-                        <span class="input-span"><label for="email" class="label">Email</label><input type="email" name="email" id="email" required></span>
-                        <span class="input-span"><label for="password" class="label">Password</label><input type="password" name="password" id="password" required></span>
+                        <span class="input-span">
+                            <label for="email" class="label">Email</label>
+                            <input type="email" name="email" id="email" required>
+                        </span>
+                        <span class="input-span">
+                            <label for="password" class="label">Password</label>
+                            <input type="password" name="password" id="password" required>
+                        </span>
                         <span class="span"><a href="#">Forgot password?</a></span>
                         <input class="submit" type="submit" value="Log in">
                         <span class="span">Don't have an account? <a href="#">Sign up</a></span>
@@ -69,76 +568,75 @@
                 </div>
             </section>
             
-            <!-- =================================================================
-                 HOME PAGE SECTION - Main dashboard after login.
-            ================================================================== -->
+            <!-- Home Page Section -->
             <section id="home-page-section" class="view-section hidden">
-                <!-- Welcome Banner -->
-                <div class="h-64 rounded-2xl bg-cover bg-center flex flex-col justify-end p-8" style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url('https://i.ibb.co/1Yh6ZWm/2142347-2560x1600-desktop-hd-healthy-food-background-photo.jpg');">
+                <!-- 1. Welcome Banner -->
+                <div class="h-64 rounded-2xl bg-cover bg-center flex flex-col justify-end p-8" style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url('https://i.ibb.co/1Yh6ZWmD/2142347-2560x1600-desktop-hd-healthy-food-background-photo.jpg');">
                     <h2 class="text-3xl font-bold text-white">Welcome Back!</h2>
                     <p class="text-gray-300">Ready to take control of your nutrition today?</p>
                 </div>
 
-                <!-- Interactive "Glass" Cards -->
+                <!-- 2. Middle Section -->
                 <div class="my-8">
                     <div class="glass-container">
+                        <!-- Daily Highlights Card -->
                         <div id="daily-highlights-card" data-text="Daily Highlights" style="--r:-15;" class="glass">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M12 8a4 4 0 1 1-8 0 4 4 0 0 1 8 0M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708"/></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-brightness-high-fill" viewBox="0 0 16 16">  <path d="M12 8a4 4 0 1 1-8 0 4 4 0 0 1 8 0M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708"/></svg>
                         </div>
+                        <!-- Nutrition Tip Card -->
                         <div id="tip-of-day-card" data-text="Tip of the Day" style="--r:5;" class="glass">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13a.5.5 0 0 1 0 1 .5.5 0 0 1 0 1l-.224.447a1 1 0 0 1-.894.553H6.618a1 1 0 0 1-.894-.553L5.5 15a.5.5 0 0 1 0-1 .5.5 0 0 1 0-1 .5.5 0 0 1-.46-.302l-.761-1.77a2 2 0 0 0-.453-.618A5.98 5.98 0 0 1 2 6m6-5a5 5 0 0 0-3.479 8.592c.263.254.514.564.676.941L5.83 12h4.342l.632-1.467c.162-.377.413-.687.676-.941A5 5 0 0 0 8 1"/></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-lightbulb" viewBox="0 0 16 16">  <path d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13a.5.5 0 0 1 0 1 .5.5 0 0 1 0 1l-.224.447a1 1 0 0 1-.894.553H6.618a1 1 0 0 1-.894-.553L5.5 15a.5.5 0 0 1 0-1 .5.5 0 0 1 0-1 .5.5 0 0 1-.46-.302l-.761-1.77a2 2 0 0 0-.453-.618A5.98 5.98 0 0 1 2 6m6-5a5 5 0 0 0-3.479 8.592c.263.254.514.564.676.941L5.83 12h4.342l.632-1.467c.162-.377.413-.687.676-.941A5 5 0 0 0 8 1"/></svg>
                         </div>
+                        <!-- Community Motivation Card -->
                         <div id="community-card" data-text="Community" style="--r:25;" class="glass">
-                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/></svg>
+                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-people-fill" viewBox="0 0 16 16">  <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/></svg>
                         </div>
                     </div>
-                    <!-- Daily Highlights Content (placeholder until profile is complete) -->
+                     <!-- Daily Highlights Content - shown after profile completion -->
                     <div id="daily-highlights-content" class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center p-6 bg-gray-800 rounded-2xl">
                        <p class="col-span-full text-gray-400">Complete your profile with the AI Nutritionist to see your personalized stats here!</p>
                     </div>
                 </div>
 
-                <!-- Main Action Cards -->
+                <!-- 3. Bottom Section -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-                    <!-- AI Nutritionist Card -->
                     <div id="ai-nutritionist-card" class="bg-indigo-700 p-6 rounded-2xl hover:bg-indigo-600 transition cursor-pointer">
                         <h3 class="font-semibold text-lg mb-2">AI Nutritionist</h3>
                         <p class="text-indigo-200 text-sm">Generate your hyper-personalized diet plan based on your unique health profile.</p>
                         <button id="ai-card-button" class="mt-4 w-full p-2 bg-white text-indigo-700 font-semibold rounded-lg">Generate Your Plan</button>
                     </div>
-                    <!-- Progress Dashboard Card -->
                      <div id="view-progress-card" class="bg-cyan-800 p-6 rounded-2xl hover:bg-cyan-700 transition cursor-pointer">
                         <h3 class="font-semibold text-lg mb-2">View Progress Dashboard</h3>
                         <p class="text-cyan-200 text-sm">Monitor your journey, track your progress, and stay motivated.</p>
                     </div>
-                    <!-- Pro Feature: Log Meal -->
                     <div id="log-meal-card-parent" class="pro-feature-card p-6 rounded-2xl transition cursor-pointer opacity-60">
-                         <h3 class="font-semibold text-lg mb-2">Log Meal with Photo</h3>
-                        <p id="log-meal-card-text" class="text-gray-400 text-sm">Use computer vision to track your food intake by simply taking a picture. (Pro Feature)</p>
+                         <!-- Content updated by JS -->
                     </div>
-                    <!-- Pro Feature: Sync Data -->
                     <div id="sync-data-card-parent" class="pro-feature-card p-6 rounded-2xl transition cursor-pointer opacity-60">
-                        <h3 class="font-semibold text-lg mb-2">Sync Activity Data</h3>
-                        <p id="sync-data-card-text" class="text-gray-400 text-sm">Integrate with smart wearables to automatically adjust recommendations. (Pro Feature)</p>
+                        <!-- Content updated by JS -->
                     </div>
                 </div>
             </section>
 
-            <!-- =================================================================
-                 ONBOARDING FORM - Multi-step form for new users.
-            ================================================================== -->
+            <!-- Onboarding Form Section -->
             <section id="onboarding-section" class="view-section hidden">
                 <div class="bg-gray-800 p-6 md:p-8 rounded-2xl shadow-2xl shadow-indigo-900/20 relative">
-                    <!-- Back Button to return to Home Page -->
                     <div class="back-button-wrapper">
                       <button class="styled-button" onclick="showHomePage()">
                         <div class="button-box">
-                          <span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span>
-                          <span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span>
+                          <span class="button-elem">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
+                            </svg>
+                          </span>
+                          <span class="button-elem">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
+                            </svg>
+                          </span>
                         </div>
                       </button>
                     </div>
-                    <!-- Form Container -->
                     <form id="nutrition-form">
                         <!-- Step 1: Personal Details -->
                         <div id="step-1" class="form-step">
@@ -150,12 +648,14 @@
                                 <input type="number" id="height" placeholder="Height (cm)" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition" required>
                                 <input type="number" id="weight" placeholder="Weight (kg)" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition" required>
                             </div>
-                            <div class="text-right mt-6"><button type="button" onclick="nextStep(2)" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-semibold transition">Next</button></div>
+                            <div class="text-right mt-6">
+                                <button type="button" onclick="nextStep(2)" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-semibold transition">Next</button>
+                            </div>
                         </div>
 
                         <!-- Step 2: Lifestyle -->
                         <div id="step-2" class="form-step hidden">
-                            <h2 class="text-2xl font-semibold mb-2 text-center">Your Lifestyle</h2>
+                             <h2 class="text-2xl font-semibold mb-2 text-center">Your Lifestyle</h2>
                             <p class="text-gray-400 mb-6 text-center">This helps us estimate your daily energy needs.</p>
                             <div class="space-y-3">
                                 <select id="activity-level" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
@@ -215,165 +715,1341 @@
                 </div>
             </section>
 
-            <!-- =================================================================
-                 MEAL PLAN SECTION - Displays the generated meal plan.
-            ================================================================== -->
+            <!-- Meal Plan Section -->
             <section id="meal-plan-section" class="view-section hidden">
                 <div class="bg-gray-800 p-6 md:p-8 rounded-2xl shadow-2xl shadow-indigo-900/20 mb-8">
                     <h2 class="text-2xl font-semibold mb-4">Today's Meal Plan</h2>
                     <div id="allergy-note" class="mb-4 p-3 bg-yellow-900/50 text-yellow-300 border border-yellow-700 rounded-lg hidden"></div>
                     <div id="meal-plan-checklist" class="space-y-6">
-                        <!-- Meal checklist items are dynamically injected here -->
+                        <!-- Meal checklist items will be injected here by JS -->
                     </div>
                     <div class="text-center mt-8">
                         <button id="log-meals-button" class="px-8 py-3 bg-green-600 hover:bg-green-700 rounded-lg font-semibold transition">Log Today's Meals</button>
                     </div>
                 </div>
                  <div class="back-button-wrapper-bottom">
-                    <button class="styled-button" onclick="showHomePage()"><div class="button-box"><span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span><span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span></div></button>
+                    <button class="styled-button" onclick="showHomePage()">
+                        <div class="button-box">
+                          <span class="button-elem">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
+                            </svg>
+                          </span>
+                          <span class="button-elem">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
+                            </svg>
+                          </span>
+                        </div>
+                    </button>
                 </div>
             </section>
             
-            <!-- =================================================================
-                 PROGRESS DASHBOARD SECTION - Shows charts and history.
-            ================================================================== -->
+            <!-- Progress Dashboard Section -->
             <section id="progress-dashboard-section" class="view-section hidden">
                  <div id="dashboard-content" class="bg-gray-800 p-6 md:p-8 rounded-2xl shadow-2xl shadow-indigo-900/20 mb-8">
-                    <!-- Dashboard content is dynamically rendered here -->
+                    <!-- Content will be rendered by JS -->
                  </div>
                  <div class="back-button-wrapper-bottom">
-                     <button class="styled-button" onclick="showHomePage()"><div class="button-box"><span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span><span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span></div></button>
+                     <button class="styled-button" onclick="showHomePage()">
+                        <div class="button-box">
+                          <span class="button-elem">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
+                            </svg>
+                          </span>
+                          <span class="button-elem">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path>
+                            </svg>
+                          </span>
+                        </div>
+                    </button>
                 </div>
             </section>
 
-            <!-- =================================================================
-                 PRO/UPGRADE SECTION - Displays subscription plans.
-            ================================================================== -->
+            <!-- Pro Section -->
             <section id="pro-section" class="view-section hidden">
                 <h2 class="text-3xl font-bold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">Choose Your Plan</h2>
                 <div class="flex flex-col md:flex-row justify-center items-center gap-8">
-                    <!-- Free Plan Card -->
+                    <!-- Free Card -->
                     <div class="plan-card">
                       <div class="card__border"></div>
-                      <div class="card_title__container"><span class="card_title">Starter Plan</span><p class="card_paragraph">Your journey to a healthier lifestyle begins here, for free.</p></div>
+                      <div class="card_title__container">
+                        <span class="card_title">Starter Plan</span>
+                        <p class="card_paragraph">Your journey to a healthier lifestyle begins here, for free.</p>
+                      </div>
                       <hr class="line">
                       <ul class="card__list">
-                        <li class="card__list_item"><span class="check"><svg viewBox="0 0 16 16" class="check_svg"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path></svg></span><span class="list_text">Personalized Meal Plan</span></li>
-                        <li class="card__list_item"><span class="check"><svg viewBox="0 0 16 16" class="check_svg"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path></svg></span><span class="list_text">BMI & Calorie Tracking</span></li>
-                        <li class="card__list_item"><span class="check"><svg viewBox="0 0 16 16" class="check_svg"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path></svg></span><span class="list_text">Community Access</span></li>
-                         <li class="card__list_item"><span class="cross"><svg viewBox="0 0 16 16" class="cross_svg"><path fill-rule="evenodd" d="M4.28 3.22a.75.75 0 0 0-1.06 1.06L6.94 8l-3.72 3.72a.75.75 0 1 0 1.06 1.06L8 9.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L9.06 8l3.72-3.72a.75.75 0 0 0-1.06-1.06L8 6.94 4.28 3.22Z" clip-rule="evenodd"></path></svg></span><span class="list_text disabled">Advanced Progress Analytics</span></li>
-                        <li class="card__list_item"><span class="cross"><svg viewBox="0 0 16 16" class="cross_svg"><path fill-rule="evenodd" d="M4.28 3.22a.75.75 0 0 0-1.06 1.06L6.94 8l-3.72 3.72a.75.75 0 1 0 1.06 1.06L8 9.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L9.06 8l3.72-3.72a.75.75 0 0 0-1.06-1.06L8 6.94 4.28 3.22Z" clip-rule="evenodd"></path></svg></span><span class="list_text disabled">Wearable Device Sync</span></li>
-                        <li class="card__list_item"><span class="cross"><svg viewBox="0 0 16 16" class="cross_svg"><path fill-rule="evenodd" d="M4.28 3.22a.75.75 0 0 0-1.06 1.06L6.94 8l-3.72 3.72a.75.75 0 1 0 1.06 1.06L8 9.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L9.06 8l3.72-3.72a.75.75 0 0 0-1.06-1.06L8 6.94 4.28 3.22Z" clip-rule="evenodd"></path></svg></span><span class="list_text disabled">Photo Meal Logging</span></li>
+                        <li class="card__list_item">
+                            <span class="check"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path></svg></span>
+                            <span class="list_text">Personalized Meal Plan</span>
+                        </li>
+                        <li class="card__list_item">
+                            <span class="check"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path></svg></span>
+                            <span class="list_text">BMI & Calorie Tracking</span>
+                        </li>
+                        <li class="card__list_item">
+                            <span class="check"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path></svg></span>
+                            <span class="list_text">Community Access</span>
+                        </li>
+                         <li class="card__list_item">
+                            <span class="cross"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="cross_svg"><path fill-rule="evenodd" d="M4.28 3.22a.75.75 0 0 0-1.06 1.06L6.94 8l-3.72 3.72a.75.75 0 1 0 1.06 1.06L8 9.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L9.06 8l3.72-3.72a.75.75 0 0 0-1.06-1.06L8 6.94 4.28 3.22Z" clip-rule="evenodd"></path></svg></span>
+                            <span class="list_text disabled">Advanced Progress Analytics</span>
+                        </li>
+                        <li class="card__list_item">
+                            <span class="cross"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="cross_svg"><path fill-rule="evenodd" d="M4.28 3.22a.75.75 0 0 0-1.06 1.06L6.94 8l-3.72 3.72a.75.75 0 1 0 1.06 1.06L8 9.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L9.06 8l3.72-3.72a.75.75 0 0 0-1.06-1.06L8 6.94 4.28 3.22Z" clip-rule="evenodd"></path></svg></span>
+                            <span class="list_text disabled">Wearable Device Sync</span>
+                        </li>
+                        <li class="card__list_item">
+                            <span class="cross"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="cross_svg"><path fill-rule="evenodd" d="M4.28 3.22a.75.75 0 0 0-1.06 1.06L6.94 8l-3.72 3.72a.75.75 0 1 0 1.06 1.06L8 9.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L9.06 8l3.72-3.72a.75.75 0 0 0-1.06-1.06L8 6.94 4.28 3.22Z" clip-rule="evenodd"></path></svg></span>
+                            <span class="list_text disabled">Photo Meal Logging</span>
+                        </li>
                       </ul>
                       <button class="card-button" disabled style="opacity: 0.5; cursor: not-allowed;">Current Plan</button>
                     </div>
-                    <!-- Premium Plan Card -->
+                    <!-- Premium Card -->
                     <div class="plan-card">
                       <div class="card__border"></div>
-                      <div class="card_title__container"><span class="card_title">NutriGuide Pro</span><p class="card_paragraph">Unlock your full potential with advanced tools and unlimited access.</p></div>
+                      <div class="card_title__container">
+                        <span class="card_title">NutriGuide Pro</span>
+                        <p class="card_paragraph">Unlock your full potential with advanced tools and unlimited access.</p>
+                      </div>
                       <hr class="line">
                       <ul class="card__list">
-                        <li class="card__list_item"><span class="check"><svg viewBox="0 0 16 16" class="check_svg"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path></svg></span><span class="list_text">All Starter Features</span></li>
-                        <li class="card__list_item"><span class="check"><svg viewBox="0 0 16 16" class="check_svg"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path></svg></span><span class="list_text">Advanced Progress Analytics</span></li>
-                        <li class="card__list_item"><span class="check"><svg viewBox="0 0 16 16" class="check_svg"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path></svg></span><span class="list_text">Wearable Device Sync</span></li>
-                        <li class="card__list_item"><span class="check"><svg viewBox="0 0 16 16" class="check_svg"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path></svg></span><span class="list_text">Photo Meal Logging</span></li>
-                         <li class="card__list_item"><span class="check"><svg viewBox="0 0 16 16" class="check_svg"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path></svg></span><span class="list_text">Priority Support</span></li>
+                        <li class="card__list_item">
+                            <span class="check"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path></svg></span>
+                            <span class="list_text">All Starter Features</span>
+                        </li>
+                        <li class="card__list_item">
+                            <span class="check"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path></svg></span>
+                            <span class="list_text">Advanced Progress Analytics</span>
+                        </li>
+                        <li class="card__list_item">
+                            <span class="check"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path></svg></span>
+                            <span class="list_text">Wearable Device Sync</span>
+                        </li>
+                        <li class="card__list_item">
+                            <span class="check"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path></svg></span>
+                            <span class="list_text">Photo Meal Logging</span>
+                        </li>
+                         <li class="card__list_item">
+                            <span class="check"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path></svg></span>
+                            <span class="list_text">Priority Support</span>
+                        </li>
                       </ul>
                       <button class="card-button" id="upgrade-now-button">Upgrade Now</button>
                     </div>
                 </div>
                 <div class="back-button-wrapper-bottom">
-                     <button class="styled-button" onclick="showHomePage()"><div class="button-box"><span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span><span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span></div></button>
-                </div>
-            </section>
-            
-            <!-- =================================================================
-                 DAILY HIGHLIGHTS DETAIL SECTION
-            ================================================================== -->
-            <section id="daily-highlights-section" class="view-section hidden">
-                <div class="bg-gray-800 p-6 md:p-8 rounded-2xl shadow-2xl shadow-indigo-900/20 mb-8">
-                     <h2 class="text-2xl font-semibold mb-4 text-center">Your Daily Highlights</h2>
-                     <div id="daily-highlights-details-content" class="text-center text-gray-400">
-                         <p>This page will show a detailed breakdown of your nutritional targets and achievements for the day. Generate a plan to see more!</p>
-                     </div>
-                </div>
-                 <div class="back-button-wrapper-bottom">
-                     <button class="styled-button" onclick="showHomePage()"><div class="button-box"><span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span><span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span></div></button>
-                </div>
-            </section>
-
-            <!-- =================================================================
-                 TIP OF THE DAY SECTION
-            ================================================================== -->
-             <section id="tip-of-the-day-section" class="view-section hidden">
-                <div class="bg-gray-800 p-6 md:p-8 rounded-2xl shadow-2xl shadow-indigo-900/20 mb-8">
-                     <h2 class="text-2xl font-semibold mb-4 text-center">💡 Tip of the Day</h2>
-                     <div class="text-center text-gray-300 bg-gray-700 p-6 rounded-lg">
-                        <p class="text-lg">"Hydration is key! Drinking enough water throughout the day can boost your metabolism and help your body absorb nutrients more efficiently. Aim for at least 8 glasses."</p>
-                     </div>
-                </div>
-                 <div class="back-button-wrapper-bottom">
-                     <button class="styled-button" onclick="showHomePage()"><div class="button-box"><span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span><span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span></div></button>
-                </div>
-            </section>
-
-            <!-- =================================================================
-                 COMMUNITY SECTION
-            ================================================================== -->
-            <section id="community-section" class="view-section hidden">
-                <div class="bg-gray-800 p-6 md:p-8 rounded-2xl shadow-2xl shadow-indigo-900/20 mb-8">
-                     <h2 class="text-2xl font-semibold mb-4 text-center">NutriGuide Community</h2>
-                     <div class="text-center text-gray-400">
-                         <p>Coming Soon! A place to share recipes, celebrate progress, and connect with others on a similar health journey.</p>
-                     </div>
-                </div>
-                 <div class="back-button-wrapper-bottom">
-                     <button class="styled-button" onclick="showHomePage()"><div class="button-box"><span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span><span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span></div></button>
-                </div>
-            </section>
-
-            <!-- =================================================================
-                 HELP SECTION
-            ================================================================== -->
-            <section id="help-section" class="view-section hidden">
-                <div class="bg-gray-800 p-6 md:p-8 rounded-2xl shadow-2xl shadow-indigo-900/20 mb-8">
-                     <h2 class="text-2xl font-semibold mb-4 text-center">Help & FAQ</h2>
-                     <div class="space-y-4 text-gray-300">
-                        <div>
-                            <h3 class="font-semibold text-lg">How is my calorie target calculated?</h3>
-                            <p class="text-gray-400">We use the Mifflin-St Jeor equation, a widely accepted formula, combined with your activity level to estimate your daily energy needs. We then adjust this number based on your health goal (weight loss, gain, or maintenance).</p>
+                     <button class="styled-button" onclick="showHomePage()">
+                        <div class="button-box">
+                          <span class="button-elem">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg>
+                          </span>
+                          <span class="button-elem">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg>
+                          </span>
                         </div>
-                        <div>
-                            <h3 class="font-semibold text-lg">Can I regenerate my meal plan?</h3>
-                            <p class="text-gray-400">Yes! Simply go back to the home page and click the "View Your Plan" button. You'll be taken back to the onboarding form, where you can adjust your preferences and generate a new plan.</p>
-                        </div>
-                         <div>
-                            <h3 class="font-semibold text-lg">What do I get with NutriGuide Pro?</h3>
-                            <p class="text-gray-400">NutriGuide Pro unlocks advanced features like detailed progress analytics, the ability to sync data from wearable devices, and our upcoming photo-based meal logging feature.</p>
-                        </div>
-                     </div>
-                </div>
-                 <div class="back-button-wrapper-bottom">
-                     <button class="styled-button" onclick="showHomePage()"><div class="button-box"><span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span><span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span></div></button>
+                    </button>
                 </div>
             </section>
-
         </main>
         
-        <!-- =================================================================
-             MODALS & NOTIFICATIONS
-        ================================================================== -->
-        <!-- Payment Modal -->
+        <!-- Payment Modal Section -->
         <section id="payment-modal-section" class="fixed inset-0 bg-black/80 flex items-center justify-center hidden z-50">
-            <!-- Content for this modal is omitted for brevity. -->
+            <div id="payment-modal-content" class="w-[350px] p-4 rounded-lg shadow-2xl flex flex-col items-center justify-center gap-4 bg-gray-800 text-gray-200 relative">
+                <button id="close-modal-button" class="absolute top-2 right-2 text-gray-400 hover:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+                
+                <!-- Payment Options -->
+                <div id="payment-options">
+                    <p class="capitalize font-semibold self-start text-lg">Payment Method</p>
+                    <p class="text-xs self-start text-gray-400 pb-2">
+                        Choose your preferred payment method to upgrade to Pro.
+                    </p>
+                    
+                    <div class="flex flex-col gap-2 mt-2">
+                         <label class="inline-flex justify-between w-full items-center z-10 rounded-lg p-2 border border-transparent has-[:checked]:border-indigo-500 has-[:checked]:text-indigo-300 has-[:checked]:bg-indigo-900/50 has-[:checked]:font-bold hover:bg-gray-700 transition-all cursor-pointer has-[:checked]:transition-all has-[:checked]:duration-500 duration-500 relative [&_p]:has-[:checked]:translate-y-0 [&_p]:has-[:checked]:transition-transform [&_p]:has-[:checked]:duration-500 [&_p]:has-[:checked]:opacity-100 overflow-hidden">
+                            <div class="inline-flex items-center justify-center gap-2 relative z-10">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="currentColor">
+                                <path d="M32 13.333l-4.177 9.333h-1.292l1.552-3.266-2.75-6.068h1.359l1.99 4.651h0.026l1.927-4.651zM14.646 16.219v3.781h-1.313v-9.333h3.474c0.828-0.021 1.63 0.266 2.25 0.807 0.615 0.505 0.953 1.219 0.943 1.974 0.010 0.766-0.339 1.5-0.943 1.979-0.604 0.531-1.354 0.792-2.25 0.792zM14.641 11.818v3.255h2.198c0.484 0.016 0.958-0.161 1.297-0.479 0.339-0.302 0.526-0.714 0.526-1.141 0-0.432-0.188-0.844-0.526-1.141-0.349-0.333-0.818-0.51-1.297-0.495zM22.63 13.333c0.833 0 1.495 0.234 1.979 0.698s0.724 1.099 0.724 1.906v3.859h-1.083v-0.87h-0.047c-0.469 0.714-1.089 1.073-1.865 1.073-0.667 0-1.219-0.203-1.667-0.615-0.438-0.385-0.682-0.948-0.672-1.531 0-0.646 0.234-1.161 0.708-1.547 0.469-0.38 1.099-0.573 1.885-0.573 0.672 0 1.224 0.13 1.656 0.385v-0.271c0.005-0.396-0.167-0.776-0.464-1.042-0.297-0.276-0.688-0.432-1.094-0.427-0.63 0-1.13 0.276-1.5 0.828l-0.995-0.646c0.547-0.818 1.359-1.229 2.432-1.229zM21.167 17.88c-0.005 0.302 0.135 0.583 0.375 0.766 0.25 0.203 0.563 0.313 0.88 0.307 0.474 0 0.932-0.198 1.271-0.547 0.359-0.333 0.563-0.802 0.563-1.292-0.354-0.292-0.844-0.438-1.474-0.438-0.464 0-0.844 0.115-1.151 0.344-0.307 0.234-0.464 0.516-0.464 0.859zM5.443 10.667c1.344-0.016 2.646 0.479 3.641 1.391l-1.552 1.521c-0.568-0.526-1.318-0.813-2.089-0.797-1.385 0.005-2.609 0.891-3.057 2.198-0.229 0.661-0.229 1.38 0 2.042 0.448 1.307 1.672 2.193 3.057 2.198 0.734 0 1.365-0.182 1.854-0.505 0.568-0.375 0.964-0.958 1.083-1.625h-2.938v-2.052h5.13c0.063 0.359 0.094 0.719 0.094 1.083 0 1.625-0.594 3-1.62 3.927-0.901 0.813-2.135 1.286-3.604 1.286-2.047 0.010-3.922-1.125-4.865-2.938-0.771-1.505-0.771-3.286 0-4.792 0.943-1.813 2.818-2.948 4.859-2.938z"></path>
+                              </svg>
+                              <p class="font-semibold absolute inset-0 w-full whitespace-nowrap -translate-y-[110%] translate-x-full top-1 left-2 transition-all duration-700 opacity-0">Google Pay</p>
+                            </div>
+                            <input type="radio" name="payment" value="google" class="checked:text-indigo-500 checked:ring-0 checked:ring-current focus:ring-0 focus:ring-current">
+                         </label>
+                         <label class="inline-flex justify-between w-full items-center rounded-lg p-2 border border-transparent has-[:checked]:border-indigo-500 has-[:checked]:text-indigo-300 has-[:checked]:bg-indigo-900/50 has-[:checked]:font-bold hover:bg-gray-700 transition-all cursor-pointer has-[:checked]:transition-all has-[:checked]:duration-500 duration-500 relative [&_p]:has-[:checked]:translate-y-0 [&_p]:has-[:checked]:transition-transform [&_p]:has-[:checked]:duration-500 [&_p]:has-[:checked]:opacity-100 overflow-hidden">
+                            <div class="inline-flex items-center justify-center gap-2 relative">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 640 512" fill="currentColor">
+                                <path d="M116.9 158.5c-7.5 8.9-19.5 15.9-31.5 14.9-1.5-12 4.4-24.8 11.3-32.6 7.5-9.1 20.6-15.6 31.3-16.1 1.2 12.4-3.7 24.7-11.1 33.8m10.9 17.2c-17.4-1-32.3 9.9-40.5 9.9-8.4 0-21-9.4-34.8-9.1-17.9.3-34.5 10.4-43.6 26.5-18.8 32.3-4.9 80 13.3 106.3 8.9 13 19.5 27.3 33.5 26.8 13.3-.5 18.5-8.6 34.5-8.6 16.1 0 20.8 8.6 34.8 8.4 14.5-.3 23.6-13 32.5-26 10.1-14.8 14.3-29.1 14.5-29.9-.3-.3-28-10.9-28.3-42.9-.3-26.8 21.9-39.5 22.9-40.3-12.5-18.6-32-20.6-38.8-21.1m100.4-36.2v194.9h30.3v-66.6h41.9c38.3 0 65.1-26.3 65.1-64.3s-26.4-64-64.1-64h-73.2zm30.3 25.5h34.9c26.3 0 41.3 14 41.3 38.6s-15 38.8-41.4 38.8h-34.8V165zm162.2 170.9c19 0 36.6-9.6 44.6-24.9h.6v23.4h28v-97c0-28.1-22.5-46.3-57.1-46.3-32.1 0-55.9 18.4-56.8 43.6h27.3c2.3-12 13.4-19.9 28.6-19.9 18.5 0 28.9 8.6 28.9 24.5v10.8l-37.8 2.3c-35.1 2.1-54.1 16.5-54.1 41.5.1 25.2 19.7 42 47.8 42zm8.2-23.1c-16.1 0-26.4-7.8-26.4-19.6 0-12.3 9.9-19.4 28.8-20.5l33.6-2.1v11c0 18.2-15.5 31.2-36 31.2zm102.5 74.6c29.5 0 43.4-11.3 55.5-45.4L640 193h-30.8l-35.6 115.1h-.6L537.4 193h-31.6L557 334.9l-2.8 8.6c-4.6 14.6-12.1 20.3-25.5 20.3-2.4 0-7-.3-8.9-.5v23.4c1.8.4 9.3.7 11.6.7z"></path>
+                              </svg>
+                              <p class="font-semibold absolute inset-0 w-full whitespace-nowrap -translate-y-[110%] translate-x-full top-1 left-2 transition-all duration-700 opacity-0">Apple Pay</p>
+                            </div>
+                            <input type="radio" name="payment" value="apple" class="checked:text-indigo-500 checked:ring-0 checked:ring-current focus:ring-0 focus:ring-current">
+                         </label>
+                         <label class="inline-flex justify-between w-full items-center rounded-lg p-2 border border-transparent has-[:checked]:border-indigo-500 has-[:checked]:text-indigo-300 has-[:checked]:bg-indigo-900/50 has-[:checked]:font-bold hover:bg-gray-700 transition-all cursor-pointer has-[:checked]:transition-all has-[:checked]:duration-500 duration-500 relative [&_p]:has-[:checked]:translate-y-0 [&_p]:has-[:checked]:transition-transform [&_p]:has-[:checked]:duration-500 [&_p]:has-[:checked]:opacity-100 overflow-hidden">
+                            <div class="inline-flex items-center justify-center gap-2 relative">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="32" height="32" fill="currentColor"><g><path fill="none" d="M0 0h24v24H0z"></path><path d="M22.222 15.768l-.225-1.125h-2.514l-.4 1.117-2.015.004a4199.19 4199.19 0 0 1 2.884-6.918c.164-.391.455-.59.884-.588.328.003.863.003 1.606.001L24 15.765l-1.778.003zm-2.173-2.666h1.62l-.605-2.82-1.015 2.82zM7.06 8.257l2.026.002-3.132 7.51-2.051-.002a950.849 950.849 0 0 1-1.528-5.956c-.1-.396-.298-.673-.679-.804C1.357 8.89.792 8.71 0 8.465V8.26h3.237c.56 0 .887.271.992.827.106.557.372 1.975.8 4.254L7.06 8.257zm4.81.002l-1.602 7.508-1.928-.002L9.94 8.257l1.93.002zm3.91-.139c.577 0 1.304.18 1.722.345l-.338 1.557c-.378-.152-1-.357-1.523-.35-.76.013-1.23.332-1.23.638 0 .498.816.749 1.656 1.293.959.62 1.085 1.177 1.073 1.782-.013 1.256-1.073 2.495-3.309 2.495-1.02-.015-1.388-.101-2.22-.396l.352-1.625c.847.355 1.206.468 1.93.468.663 0 1.232-.268 1.237-.735.004-.332-.2-.497-.944-.907-.744-.411-1.788-.98-1.774-2.122.017-1.462 1.402-2.443 3.369-2.443z"></path></g></svg>
+                                <p class="font-semibold absolute inset-0 w-full whitespace-nowrap -translate-y-[110%] translate-x-full top-1 left-2 transition-all duration-700 opacity-0">Credit Card</p>
+                            </div>
+                            <input type="radio" name="payment" value="visa" class="checked:text-indigo-500 checked:ring-0 checked:ring-current focus:ring-0 focus:ring-current">
+                         </label>
+                    </div>
+                    <button id="pay-now-button" class="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">Pay Now</button>
+                </div>
+
+                <!-- Payment Success -->
+                <div id="payment-success" class="hidden text-center">
+                    <div class="mx-auto bg-green-500 rounded-full h-16 w-16 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold mt-4">Payment Successful!</h3>
+                    <p class="text-gray-400 mt-2">Welcome to NutriGuide Pro! You now have access to all premium features.</p>
+                    <button id="go-to-dashboard-button" class="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">Go to Dashboard</button>
+                </div>
+            </div>
         </section>
         
-        <!-- Toast Notification -->
-        <div id="toast-notification" class="fixed top-20 right-8 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg opacity-0 transition-opacity duration-500 z-50"></div>
+        <!-- Daily Highlights Page -->
+        <section id="daily-highlights-section" class="view-section hidden">
+            <div class="page-back-button">
+                <button class="styled-button" onclick="showHomePage()">
+                    <div class="button-box">
+                      <span class="button-elem">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg>
+                      </span>
+                      <span class="button-elem">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg>
+                      </span>
+                    </div>
+                </button>
+            </div>
+            <div id="daily-highlights-content-page" class="bg-gray-800 p-6 md:p-8 rounded-2xl">
+                 <!-- Content rendered by JS -->
+            </div>
+        </section>
+        
+        <!-- Tip of the Day Page -->
+        <section id="tip-of-the-day-section" class="view-section hidden">
+            <div class="page-back-button">
+                 <button class="styled-button" onclick="showHomePage()">
+                    <div class="button-box">
+                      <span class="button-elem">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg>
+                      </span>
+                      <span class="button-elem">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg>
+                      </span>
+                    </div>
+                </button>
+            </div>
+            <h2 class="text-3xl font-bold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">Tips & Insights</h2>
+            
+            <!-- Main Tip -->
+            <div class="bg-gray-800 p-6 rounded-2xl mb-8 shadow-lg">
+                <h3 class="font-bold text-2xl mb-2 text-amber-400">Embrace Colorful Eating</h3>
+                <p class="text-gray-300">Eating a variety of colorful fruits and vegetables is a great way to ensure you're getting a wide range of vitamins, minerals, and antioxidants. Each color typically represents different nutrients. For example, leafy greens are rich in iron and calcium, while orange and yellow vegetables provide beta-carotene, a precursor to vitamin A.</p>
+            </div>
+
+            <!-- More Tips -->
+            <h4 class="font-semibold text-xl mb-4 text-gray-300">More Tips for You</h4>
+            <div class="space-y-4">
+                <div class="bg-gray-800/50 p-4 rounded-lg">
+                    <h5 class="font-semibold text-white">The Importance of Hydration</h5>
+                    <p class="text-sm text-gray-400">Water is crucial for every bodily function, from regulating temperature to flushing out toxins. Aim for at least 8 glasses a day, and more if you're active.</p>
+                </div>
+                 <div class="bg-gray-800/50 p-4 rounded-lg">
+                    <h5 class="font-semibold text-white">Mindful Eating Practices</h5>
+                    <p class="text-sm text-gray-400">Pay attention to your food as you eat. Avoid distractions like watching TV. This can help you recognize hunger and fullness cues better, preventing overeating.</p>
+                </div>
+                 <div class="bg-gray-800/50 p-4 rounded-lg">
+                    <h5 class="font-semibold text-white">Understanding Healthy Fats</h5>
+                    <p class="text-sm text-gray-400">Not all fats are bad. Healthy fats from sources like avocados, nuts, and olive oil are essential for brain health and hormone production.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Community Page -->
+        <section id="community-section" class="view-section hidden">
+            <div class="page-back-button">
+                 <button class="styled-button" onclick="showHomePage()">
+                    <div class="button-box">
+                      <span class="button-elem">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg>
+                      </span>
+                      <span class="button-elem">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg>
+                      </span>
+                    </div>
+                </button>
+            </div>
+            <h2 class="text-3xl font-bold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500">Community Hub</h2>
+            
+            <!-- Weekly Challenge -->
+            <div class="bg-teal-900/50 border border-teal-700 p-6 rounded-2xl mb-8 text-center">
+                <h3 class="font-bold text-2xl mb-2 text-teal-300">Weekly Challenge: Veggie Power!</h3>
+                <p class="text-gray-300">Try to incorporate at least one new vegetable into your meals every day this week. Share your creations below!</p>
+            </div>
+
+            <!-- Share Update -->
+            <div class="bg-gray-800 p-4 rounded-2xl mb-8">
+                <textarea class="w-full bg-gray-700 text-gray-200 p-2 rounded-lg border-0 focus:ring-2 focus:ring-indigo-500" placeholder="Share a win or ask a question..."></textarea>
+                <button class="w-full mt-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-semibold transition">Post Update</button>
+            </div>
+
+            <!-- Community Feed -->
+            <div class="space-y-6">
+                <div class="bg-gray-800/50 p-4 rounded-lg flex gap-4">
+                    <img src="https://placehold.co/48x48/7c3aed/ffffff?text=JS" class="rounded-full w-12 h-12" alt="User Avatar">
+                    <div>
+                        <p class="font-semibold text-white">John S.</p>
+                        <p class="text-sm text-gray-400">Down 5kg since I started! The meal plans make it so easy to stay on track.</p>
+                    </div>
+                </div>
+                 <div class="bg-gray-800/50 p-4 rounded-lg flex gap-4">
+                    <img src="https://placehold.co/48x48/be185d/ffffff?text=MR" class="rounded-full w-12 h-12" alt="User Avatar">
+                    <div>
+                        <p class="font-semibold text-white">Maria R.</p>
+                        <p class="text-sm text-gray-400">Does anyone have tips for healthy snacks on the go? I'm struggling with my afternoons!</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Help/Chatbot Page -->
+        <section id="help-section" class="view-section hidden">
+             <div class="page-back-button">
+                 <button class="styled-button" onclick="showHomePage()">
+                    <div class="button-box">
+                      <span class="button-elem">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg>
+                      </span>
+                      <span class="button-elem">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg>
+                      </span>
+                    </div>
+                </button>
+            </div>
+             <h2 class="text-3xl font-bold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">AI Help Assistant</h2>
+             <div class="bg-gray-800 rounded-2xl shadow-lg flex flex-col h-[70vh]">
+                <!-- Chat Window -->
+                <div id="chat-window" class="flex-1 p-4 space-y-4 overflow-y-auto">
+                    <!-- Initial AI Message -->
+                    <div class="p-3 rounded-lg bg-gray-700 max-w-lg">
+                        <p>Hello! I'm the NutriGuide Assistant. How can I help you today? You can ask me about nutrition, health tips, or how to use the app.</p>
+                    </div>
+                </div>
+                <!-- Typing Indicator -->
+                 <div id="typing-indicator" class="p-4 hidden">
+                    <span class="text-sm text-gray-400 italic">NutriGuide Assistant is typing...</span>
+                </div>
+                <!-- Input Area -->
+                <div class="p-4 border-t border-gray-700">
+                    <form id="chat-form" class="flex gap-2">
+                        <input type="text" id="chat-input" class="flex-1 p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition" placeholder="Ask a question...">
+                        <button type="submit" id="send-chat-button" class="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-semibold transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        </button>
+                    </form>
+                </div>
+             </div>
+        </section>
+        
+        <!-- Photo Logging Modal -->
+        <section id="photo-log-modal-section" class="modal-section fixed inset-0 bg-black/80 flex items-center justify-center hidden z-50">
+            <div class="bg-gray-800 w-full max-w-md p-6 rounded-2xl shadow-lg relative">
+                 <button id="close-photo-modal-button" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+                <div id="photo-log-initial">
+                    <h2 class="text-2xl font-bold text-center">Log Meal with Photo</h2>
+                    <p class="text-center text-gray-400 mt-2 mb-6">Upload a photo of your meal for instant nutritional analysis.</p>
+                    <input type="file" id="image-upload-input" class="hidden" accept="image/*" capture="environment">
+                    <button id="upload-image-button" class="w-full flex items-center justify-center gap-2 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-semibold transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                        Upload Photo
+                    </button>
+                </div>
+                <div id="photo-log-preview" class="hidden">
+                    <h2 class="text-2xl font-bold text-center mb-4">Confirm Your Meal</h2>
+                    <img id="image-preview" src="#" alt="Meal Preview" class="w-full h-64 object-cover rounded-lg mb-4">
+                    <button id="analyze-meal-button" class="w-full flex items-center justify-center gap-2 py-3 px-4 bg-green-600 hover:bg-green-700 rounded-lg font-semibold transition">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                        Analyze Meal
+                    </button>
+                </div>
+                 <div id="photo-log-loading" class="hidden text-center py-10">
+                     <svg class="animate-spin mx-auto h-12 w-12 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p class="mt-4 text-lg">Analyzing your meal...</p>
+                 </div>
+                 <div id="photo-log-results" class="hidden">
+                     <h2 class="text-2xl font-bold text-center mb-4">Analysis Complete!</h2>
+                     <div id="analysis-results-content" class="bg-gray-900 p-4 rounded-lg">
+                        <!-- Results injected here -->
+                     </div>
+                     <p id="analysis-error" class="text-red-400 text-center mt-4 hidden"></p>
+                     <button id="confirm-log-button" class="w-full mt-4 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-semibold transition">Log This Meal</button>
+                 </div>
+            </div>
+        </section>
+
+        <!-- About Page -->
+        <section id="about-section" class="view-section hidden">
+             <div class="page-back-button">
+                 <button class="styled-button" onclick="showHomePage()">
+                    <div class="button-box">
+                      <span class="button-elem">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg>
+                      </span>
+                      <span class="button-elem">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg>
+                      </span>
+                    </div>
+                </button>
+            </div>
+             <div class="bg-gray-800 rounded-2xl shadow-lg p-8 md:p-12">
+                <div class="text-center mb-12">
+                     <h2 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">About NutriGuide</h2>
+                     <p class="mt-4 text-lg text-gray-300 max-w-3xl mx-auto">Harnessing the power of AI to make personalized nutrition accessible to everyone.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-gray-400">
+                    <div class="bg-gray-900/50 p-6 rounded-lg">
+                        <h3 class="font-semibold text-xl mb-3 text-cyan-400">Why Nutrition Matters</h3>
+                        <p class="text-sm leading-relaxed">Proper nutrition is the cornerstone of a healthy life. It's the fuel your body uses to function, heal, and thrive. A balanced diet impacts everything from your energy levels and mental clarity to your long-term health, helping to prevent chronic diseases. In a world of confusing dietary advice, understanding your body's unique needs is more important than ever.</p>
+                    </div>
+                     <div class="bg-gray-900/50 p-6 rounded-lg">
+                        <h3 class="font-semibold text-xl mb-3 text-cyan-400">Our Vision</h3>
+                        <p class="text-sm leading-relaxed">Our vision is to eliminate the guesswork from healthy eating. Generic, one-size-fits-all diet plans often fail because they don't account for the most important factor: you. We created NutriGuide to be your personal AI nutritionist, crafting hyper-personalized plans that adapt to your unique body, lifestyle, and goals, making a healthier life not just possible, but simple.</p>
+                    </div>
+                </div>
+
+                <div class="mt-12">
+                    <h3 class="font-semibold text-xl mb-4 text-center text-cyan-400">How It Works</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+                        <div class="bg-gray-900/50 p-6 rounded-lg">
+                            <h4 class="font-bold text-lg text-white">1. Tell Us About You</h4>
+                            <p class="text-sm text-gray-400 mt-2">Provide your unique health data, including goals, allergies, and lifestyle habits.</p>
+                        </div>
+                         <div class="bg-gray-900/50 p-6 rounded-lg">
+                            <h4 class="font-bold text-lg text-white">2. Get Your AI Plan</h4>
+                            <p class="text-sm text-gray-400 mt-2">Our AI analyzes your profile to generate a personalized meal plan just for you.</p>
+                        </div>
+                         <div class="bg-gray-900/50 p-6 rounded-lg">
+                            <h4 class="font-bold text-lg text-white">3. Track & Thrive</h4>
+                            <p class="text-sm text-gray-400 mt-2">Log your meals, monitor your progress, and watch as our AI adapts to your journey.</p>
+                        </div>
+                    </div>
+                </div>
+             </div>
+        </section>
     </div>
     
-    <!-- Link to your main application logic script -->
-    <script src="script.js"></script>
+    <!-- Toast Notification -->
+    <div id="toast-notification" class="fixed top-20 right-8 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg opacity-0 transition-opacity duration-500 z-50"></div>
+
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- App Configuration ---
+        const config = {
+            apiBaseUrl: 'http://127.0.0.1:5000' // Change this URL when you deploy your backend
+        };
+
+        // --- Application State Management ---
+        let appState = {
+            currentStep: 1,
+            userProfile: null,
+            mealHistory: [],
+            weightData: [],
+            isProUser: false,
+        };
+        
+        let weightChart;
+        let macroChart;
+        let selectedImageFile = null;
+
+        function saveStateToLocalStorage() {
+            localStorage.setItem('nutriGuideState', JSON.stringify(appState));
+        }
+
+        function loadStateFromLocalStorage() {
+            const savedState = localStorage.getItem('nutriGuideState');
+            if (savedState) {
+                appState = JSON.parse(savedState);
+            }
+        }
+        
+        // --- Core App Logic ---
+        function showSection(sectionId) {
+            document.querySelectorAll('.view-section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            const section = document.getElementById(sectionId);
+            section.classList.remove('hidden');
+
+            if(sectionId === 'progress-dashboard-section') {
+                renderDashboard();
+            }
+            if(sectionId === 'daily-highlights-section') {
+                renderDailyHighlightsPage();
+            }
+        }
+
+        function nextStep(step) {
+            document.getElementById(`step-${appState.currentStep}`).classList.add('hidden');
+            document.getElementById(`step-${step}`).classList.remove('hidden');
+            appState.currentStep = step;
+        }
+
+        function prevStep(step) {
+            document.getElementById(`step-${appState.currentStep}`).classList.add('hidden');
+            document.getElementById(`step-${step}`).classList.remove('hidden');
+            appState.currentStep = step;
+        }
+        
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            document.getElementById('main-nav').classList.remove('hidden');
+            // On login, we check if there's saved data
+            if (appState.userProfile) {
+                 updateDailyHighlights(appState.userProfile);
+                 updateAiCard();
+            }
+            showSection('home-page-section');
+            updateProFeatures();
+        });
+
+        document.getElementById('home-link').addEventListener('click', function(e) {
+            e.preventDefault();
+            showHomePage();
+        });
+        
+        document.getElementById('about-link').addEventListener('click', function(e) {
+            e.preventDefault();
+            showSection('about-section');
+        });
+        
+        document.getElementById('help-link').addEventListener('click', function(e) {
+            e.preventDefault();
+            showSection('help-section');
+        });
+        
+        document.getElementById('unlock-pro-button').addEventListener('click', () => {
+            showSection('pro-section');
+        });
+
+        document.getElementById('ai-nutritionist-card').addEventListener('click', () => {
+             if(appState.userProfile && appState.userProfile.latestPlan) {
+                 showSection('meal-plan-section');
+             } else {
+                 showSection('onboarding-section');
+             }
+        });
+
+        document.getElementById('view-progress-card').addEventListener('click', () => {
+            showSection('progress-dashboard-section');
+        });
+
+        // New event listeners for glass cards
+        document.getElementById('daily-highlights-card').addEventListener('click', () => {
+            showSection('daily-highlights-section');
+        });
+        document.getElementById('tip-of-day-card').addEventListener('click', () => {
+            showSection('tip-of-the-day-section');
+        });
+        document.getElementById('community-card').addEventListener('click', () => {
+            showSection('community-section');
+        });
+        
+        function showHomePage() {
+            showSection('home-page-section');
+            updateProFeatures();
+        }
+
+        document.getElementById('nutrition-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            document.getElementById('form-error-message').textContent = ''; // Clear previous errors
+            const submitButton = this.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Generating...
+            `;
+
+            try {
+                // 1. Collect user data
+                appState.userProfile = {
+                    name: document.getElementById('name').value,
+                    age: parseInt(document.getElementById('age').value),
+                    height: parseInt(document.getElementById('height').value),
+                    weight: parseInt(document.getElementById('weight').value),
+                    activityLevel: document.getElementById('activity-level').value,
+                    dietaryPreference: document.getElementById('dietary-preference').value,
+                    allergies: document.getElementById('allergies').value,
+                    culturalPreference: document.getElementById('cultural-preference').value,
+                    healthGoal: document.getElementById('health-goal').value,
+                };
+                
+                // Initialize weight data
+                appState.weightData = [{date: new Date().toLocaleDateString(), weight: appState.userProfile.weight}];
+
+                // 2. Perform calculations
+                const bmi = calculateBMI(appState.userProfile.weight, appState.userProfile.height);
+                const calories = calculateCalories(appState.userProfile);
+                appState.userProfile.bmi = bmi;
+                appState.userProfile.calories = calories;
+
+                // 3. Generate AI Plan
+                const planData = await generateAiPlan(appState.userProfile);
+
+                if (planData && planData.meals && planData.macros) {
+                    appState.userProfile.latestPlan = planData;
+                    // 4. Update UI & Save State
+                    updateDailyHighlights(appState.userProfile);
+                    updateAiCard();
+                    displayMealPlanChecklist(appState.userProfile.latestPlan);
+                    saveStateToLocalStorage();
+                    showSection('meal-plan-section');
+                } else {
+                     document.getElementById('form-error-message').textContent = "Sorry, we couldn't generate a plan at this time. The AI might be busy. Please try again later.";
+                }
+            } catch (error) {
+                console.error('Error generating AI plan:', error);
+                document.getElementById('form-error-message').textContent = "An error occurred while generating your plan. Please try again.";
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Generate My Plan';
+            }
+        });
+
+        // Payment Modal Logic
+        const paymentModal = document.getElementById('payment-modal-section');
+        const upgradeButton = document.getElementById('upgrade-now-button');
+        const closeModalButton = document.getElementById('close-modal-button');
+        const payNowButton = document.getElementById('pay-now-button');
+        const goToDashboardButton = document.getElementById('go-to-dashboard-button');
+        const paymentOptionsDiv = document.getElementById('payment-options');
+        const paymentSuccessDiv = document.getElementById('payment-success');
+
+        upgradeButton.addEventListener('click', () => {
+            paymentOptionsDiv.style.display = 'block';
+            paymentSuccessDiv.style.display = 'none';
+            paymentModal.classList.remove('hidden');
+        });
+
+        closeModalButton.addEventListener('click', () => {
+            paymentModal.classList.add('hidden');
+        });
+
+        payNowButton.addEventListener('click', () => {
+            payNowButton.disabled = true;
+            payNowButton.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing...
+            `;
+            
+            setTimeout(() => {
+                paymentOptionsDiv.style.display = 'none';
+                paymentSuccessDiv.style.display = 'block';
+                payNowButton.disabled = false;
+                payNowButton.textContent = 'Pay Now';
+            }, 2000);
+        });
+
+        goToDashboardButton.addEventListener('click', () => {
+            appState.isProUser = true;
+            saveStateToLocalStorage();
+            paymentModal.classList.add('hidden');
+            showHomePage();
+        });
+        
+        async function generateAiPlan(userData) {
+            const apiKey = "AIzaSyBeXwBjMXSpEQvly0hjA2nznBXAtD6LCv0"; // API key is handled by the environment
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+            const prompt = `
+                You are an expert nutritionist. Create a personalized one-day meal plan for a user with the goal of consuming approximately ${userData.calories} kcal.
+
+                User Profile:
+                - Goal: ${userData.healthGoal}
+                - Dietary Preference: ${userData.dietaryPreference}
+                - Allergies: ${userData.allergies || 'None'}
+                - Cultural Preference: ${userData.culturalPreference || 'None'}
+
+                Provide a simple, healthy, and balanced meal plan. 
+                
+                Return the response ONLY as a valid JSON object with the following structure:
+                {
+                  "meals": {
+                    "Breakfast": "...",
+                    "Lunch": "...",
+                    "Dinner": "...",
+                    "Snack": "..."
+                  },
+                  "macros": {
+                    "protein": <percentage>,
+                    "carbs": <percentage>,
+                    "fats": <percentage>
+                  }
+                }
+                The sum of macro percentages must be 100.
+            `;
+
+            const payload = { contents: [{ parts: [{ text: prompt }] }], };
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                console.error("API Error Response:", await response.text());
+                throw new Error(`API call failed with status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            const candidate = result.candidates?.[0];
+
+            if (candidate && candidate.content?.parts?.[0]?.text) {
+                const textResponse = candidate.content.parts[0].text;
+                const cleanedJsonString = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+                
+                try {
+                    return JSON.parse(cleanedJsonString);
+                } catch (e) {
+                    console.error("Failed to parse JSON from AI response:", cleanedJsonString);
+                    throw new Error("Could not understand the AI's response format.");
+                }
+            } else {
+                console.error("Invalid response structure from API:", result);
+                throw new Error('Invalid or empty response from API');
+            }
+        }
+        
+        function updateDailyHighlights(profile) {
+            const container = document.getElementById('daily-highlights-content');
+            container.innerHTML = `
+                <div>
+                    <p class="text-gray-400 text-sm">Your BMI</p>
+                    <p class="text-2xl font-bold">${profile.bmi}</p>
+                </div>
+                <div>
+                    <p class="text-gray-400 text-sm">Target Calories</p>
+                    <p class="text-2xl font-bold">${profile.calories.toLocaleString()}</p>
+                </div>
+                 <div>
+                    <p class="text-gray-400 text-sm">Primary Goal</p>
+                    <p class="text-2xl font-bold capitalize">${profile.healthGoal.replace('-', ' ')}</p>
+                </div>
+                 <div>
+                    <p class="text-gray-400 text-sm">Diet Style</p>
+                    <p class="text-2xl font-bold capitalize">${profile.dietaryPreference}</p>
+                </div>
+            `;
+        }
+        
+        function updateAiCard() {
+            const button = document.getElementById('ai-card-button');
+            button.innerText = 'View Your Plan';
+        }
+        
+        function calculateBMI(weight, height) {
+            if (weight > 0 && height > 0) {
+                const heightInMeters = height / 100;
+                const bmi = weight / (heightInMeters * heightInMeters);
+                return bmi.toFixed(1);
+            }
+            return 0;
+        }
+        
+        function calculateCalories(data) {
+            const bmr = 88.362 + (13.397 * data.weight) + (4.799 * data.height) - (5.677 * data.age);
+            const activityMultipliers = {
+                sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725, 'extra-active': 1.9,
+            };
+            let dailyCalories = bmr * (activityMultipliers[data.activityLevel] || 1.2);
+            if (data.healthGoal === 'weight-loss') dailyCalories -= 500;
+            else if (data.healthGoal === 'muscle-gain') dailyCalories += 500;
+            return Math.round(dailyCalories);
+        }
+
+        function displayMealPlanChecklist(planData) {
+            const container = document.getElementById('meal-plan-checklist');
+            container.innerHTML = ''; 
+            const mealIcons = { Breakfast: '☀️', Lunch: '🥗', Dinner: '🌙', Snack: '🍎' };
+            for (const meal in planData.meals) {
+                const mealId = meal.toLowerCase();
+                container.innerHTML += `
+                    <div class="meal-log-item p-4 bg-gray-900 rounded-lg">
+                        <div class="flex items-start gap-4">
+                            <div class="text-3xl">${mealIcons[meal] || '🍽️'}</div>
+                            <div>
+                                <h4 class="font-semibold text-lg text-cyan-400">${meal}</h4>
+                                <p class="text-gray-300">${planData.meals[meal]}</p>
+                            </div>
+                        </div>
+                        <div class="mt-4 pl-12">
+                            <p class="text-sm font-medium text-gray-400 mb-2">Did you follow this?</p>
+                            <div class="flex items-center gap-4">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="log-${mealId}" value="yes" class="form-radio bg-gray-700 text-indigo-500" checked>
+                                    <span class="text-gray-300">Yes</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="log-${mealId}" value="no" class="form-radio bg-gray-700 text-indigo-500">
+                                    <span class="text-gray-300">No</span>
+                                </label>
+                            </div>
+                            <input type="text" id="alternative-${mealId}" placeholder="What did you eat instead?" class="mt-2 w-full p-2 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition hidden">
+                        </div>
+                    </div>`;
+            }
+
+            // Add event listeners for radio buttons
+            document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                radio.addEventListener('change', (event) => {
+                    const meal = event.target.name.split('-')[1];
+                    const alternativeInput = document.getElementById(`alternative-${meal}`);
+                    if (event.target.value === 'no') {
+                        alternativeInput.classList.remove('hidden');
+                    } else {
+                        alternativeInput.classList.add('hidden');
+                    }
+                });
+            });
+        }
+        
+        document.getElementById('log-meals-button').addEventListener('click', () => {
+            const log = {
+                date: new Date().toLocaleDateString(),
+                meals: []
+            };
+            const mealItems = document.querySelectorAll('.meal-log-item');
+            mealItems.forEach(item => {
+                const mealName = item.querySelector('h4').textContent;
+                const mealId = mealName.toLowerCase();
+                const followed = item.querySelector(`input[name="log-${mealId}"]:checked`).value === 'yes';
+                let mealEaten = appState.userProfile.latestPlan.meals[mealName];
+                if (!followed) {
+                    mealEaten = item.querySelector(`#alternative-${mealId}`).value || 'Did not log alternative';
+                }
+                log.meals.push({ name: mealName, followed, mealEaten });
+            });
+            appState.mealHistory.unshift(log); // Add to beginning of history
+            saveStateToLocalStorage();
+            showToast("Your meals for today have been logged!");
+            showSection('progress-dashboard-section');
+        });
+        
+        function renderDashboard() {
+            const container = document.getElementById('dashboard-content');
+            if(!appState.userProfile) {
+                container.innerHTML = `<p class="text-center text-gray-400">Please complete your profile using the AI Nutritionist to view your dashboard.</p>`;
+                return;
+            }
+            
+            const currentWeight = appState.weightData[appState.weightData.length-1].weight;
+            const weightChange = currentWeight - appState.userProfile.weight;
+
+            container.innerHTML = `
+                <h2 class="text-2xl font-semibold mb-6">Progress Dashboard</h2>
+                <!-- Key Stats -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center mb-8">
+                     <div>
+                        <p class="text-gray-400 text-sm">Starting Weight</p>
+                        <p class="text-2xl font-bold">${appState.userProfile.weight} kg</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Current Weight</p>
+                        <p class="text-2xl font-bold text-cyan-400">${currentWeight} kg</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Change</p>
+                        <p class="text-2xl font-bold ${weightChange <= 0 ? 'text-green-400' : 'text-red-400'}">${weightChange.toFixed(1)} kg</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Current BMI</p>
+                        <p class="text-2xl font-bold">${calculateBMI(currentWeight, appState.userProfile.height)}</p>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <div>
+                        <h3 class="font-semibold mb-2">Weight Trend</h3>
+                        <div class="bg-gray-900 p-4 rounded-lg"><canvas id="weightChart"></canvas></div>
+                        <div class="flex gap-2 mt-2">
+                             <input type="number" id="new-weight-input" placeholder="Enter new weight" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg text-sm">
+                             <button id="add-weight-button" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-semibold text-sm">Add</button>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold mb-2">Today's Target Macros</h3>
+                        <div class="bg-gray-900 p-4 rounded-lg flex justify-center items-center h-[280px]"><canvas id="macroChart"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- Meal History -->
+                <div>
+                    <h3 class="font-semibold mb-4 text-xl">Meal Log History</h3>
+                    <div id="meal-history-container" class="space-y-4 max-h-96 overflow-y-auto">
+                        <!-- History will be injected here -->
+                    </div>
+                </div>
+            `;
+            
+            renderWeightChart();
+            renderMacroChart();
+            renderMealHistory();
+
+            document.getElementById('add-weight-button').addEventListener('click', () => {
+                const newWeightInput = document.getElementById('new-weight-input');
+                const newWeight = parseFloat(newWeightInput.value);
+                if(newWeight > 0) {
+                    appState.weightData.push({date: new Date().toLocaleDateString(), weight: newWeight});
+                    newWeightInput.value = '';
+                    saveStateToLocalStorage();
+                    renderDashboard(); // Re-render the whole dashboard
+                }
+            });
+        }
+        
+        function renderWeightChart() {
+            if (weightChart) weightChart.destroy();
+            const ctx = document.getElementById('weightChart').getContext('2d');
+            weightChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: appState.weightData.map(d => d.date),
+                    datasets: [{
+                        label: 'Weight (kg)',
+                        data: appState.weightData.map(d => d.weight),
+                        borderColor: '#6366f1',
+                        backgroundColor: '#6366f120',
+                        fill: true,
+                        tension: 0.3,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { ticks: { color: '#9CA3AF' } },
+                        x: { ticks: { color: '#9CA3AF' } }
+                    },
+                    plugins: { legend: { labels: { color: '#9CA3AF' } } }
+                }
+            });
+        }
+        
+        function renderMacroChart() {
+            if (macroChart) macroChart.destroy();
+            if (!appState.userProfile || !appState.userProfile.latestPlan) return;
+            const macros = appState.userProfile.latestPlan.macros;
+            const ctx = document.getElementById('macroChart').getContext('2d');
+            macroChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: [`Protein (${macros.protein}%)`, `Carbs (${macros.carbs}%)`, `Fats (${macros.fats}%)`],
+                    datasets: [{
+                        data: [macros.protein, macros.carbs, macros.fats],
+                        backgroundColor: ['#10B981', '#06B6D4', '#F59E0B'],
+                        borderColor: '#1F2937',
+                        borderWidth: 4,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#9CA3AF' } }
+                    }
+                }
+            });
+        }
+
+        function renderMealHistory() {
+            const container = document.getElementById('meal-history-container');
+            if (appState.mealHistory.length === 0) {
+                container.innerHTML = `<p class="text-center text-gray-500">No meals have been logged yet.</p>`;
+                return;
+            }
+            container.innerHTML = appState.mealHistory.map(log => `
+                <div class="bg-gray-900 p-4 rounded-lg">
+                    <h4 class="font-semibold text-cyan-400">Log for ${log.date}</h4>
+                    <ul class="mt-2 space-y-2 text-sm">
+                        ${log.meals.map(meal => `
+                            <li class="flex items-start gap-3">
+                                <span class="${meal.followed ? 'text-green-500' : 'text-yellow-500'}">●</span>
+                                <div>
+                                    <span class="font-medium text-gray-300">${meal.name}:</span>
+                                    <span class="text-gray-400">${meal.mealEaten}</span>
+                                </div>
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+            `).join('');
+        }
+        
+        function renderDailyHighlightsPage() {
+            const container = document.getElementById('daily-highlights-content-page');
+            if (!appState.userProfile || !appState.userProfile.latestPlan) {
+                container.innerHTML = `<p class="text-center text-gray-400">Please generate a meal plan first to see your detailed highlights!</p>`;
+                return;
+            }
+            const macros = appState.userProfile.latestPlan.macros;
+            const calories = appState.userProfile.calories;
+            
+            // Calculate macro grams
+            const proteinGrams = Math.round((calories * (macros.protein / 100)) / 4);
+            const carbsGrams = Math.round((calories * (macros.carbs / 100)) / 4);
+            const fatsGrams = Math.round((calories * (macros.fats / 100)) / 9);
+
+            container.innerHTML = `
+                <h2 class="text-3xl font-bold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400">Your Daily Targets</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Calorie Progress -->
+                    <div class="bg-gray-900 p-6 rounded-xl flex flex-col items-center justify-center">
+                         <div class="relative w-48 h-48">
+                            <svg class="w-full h-full" viewBox="0 0 100 100">
+                                <!-- Background circle -->
+                                <circle class="text-gray-700" stroke-width="10" cx="50" cy="50" r="40" fill="transparent"></circle>
+                                <!-- Progress circle -->
+                                <circle class="text-indigo-500" stroke-width="10" cx="50" cy="50" r="40" fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="251.2" transform="rotate(-90 50 50)" style="stroke-dashoffset: calc(251.2 - (251.2 * 80) / 100); transition: stroke-dashoffset 0.5s ease-out;"></circle>
+                            </svg>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                <span class="text-4xl font-bold text-white">${calories.toLocaleString()}</span>
+                                <span class="text-gray-400">kcal Goal</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- BMI Status -->
+                    <div class="bg-gray-900 p-6 rounded-xl flex flex-col items-center justify-center">
+                        <p class="text-lg text-gray-400">Your BMI</p>
+                        <p class="text-6xl font-bold text-cyan-400">${appState.userProfile.bmi}</p>
+                        <p class="mt-2 px-3 py-1 text-sm font-semibold bg-cyan-900/50 text-cyan-300 rounded-full">Normal</p>
+                    </div>
+                    <!-- Macro Goals -->
+                    <div class="md:col-span-2 bg-gray-900 p-6 rounded-xl">
+                        <h3 class="font-semibold text-lg mb-4 text-center">Macronutrient Goals</h3>
+                        <div class="grid grid-cols-3 gap-4 text-center">
+                            <div>
+                                <p class="text-green-400 font-bold text-3xl">${proteinGrams}g</p>
+                                <p class="text-gray-400 text-sm">Protein</p>
+                            </div>
+                            <div>
+                                <p class="text-blue-400 font-bold text-3xl">${carbsGrams}g</p>
+                                <p class="text-gray-400 text-sm">Carbs</p>
+                            </div>
+                            <div>
+                                <p class="text-yellow-400 font-bold text-3xl">${fatsGrams}g</p>
+                                <p class="text-gray-400 text-sm">Fats</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function logout() {
+            // Reset state object to its initial values
+            appState = {
+                currentStep: 1,
+                userProfile: null,
+                mealHistory: [],
+                weightData: [],
+                isProUser: false,
+            };
+            
+            // Clear the stored state from localStorage
+            localStorage.removeItem('nutriGuideState');
+
+            if(weightChart) weightChart.destroy();
+            if(macroChart) macroChart.destroy();
+            
+            document.getElementById('main-nav').classList.add('hidden');
+            
+            // Reset forms
+            document.getElementById('nutrition-form').reset();
+            document.getElementById('login-form').reset();
+            
+            // Reset daily highlights
+            document.getElementById('daily-highlights-content').innerHTML = `<p class="col-span-full text-gray-400">Complete your profile to see your personalized stats!</p>`;
+
+            // Reset AI card button
+             document.getElementById('ai-card-button').innerText = 'Generate Your Plan';
+            
+            // Reset multistep form to the beginning
+            const oldCurrentStep = appState.currentStep;
+            if (oldCurrentStep !== 1) {
+                document.getElementById(`step-${oldCurrentStep}`).classList.add('hidden');
+                document.getElementById(`step-1`).classList.remove('hidden');
+            }
+            appState.currentStep = 1;
+
+            showSection('login-section');
+            updateProFeatures();
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast-notification');
+            toast.textContent = message;
+            toast.classList.remove('opacity-0');
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+            }, 3000); // Hide after 3 seconds
+        }
+
+        function updateProFeatures() {
+            const proBadge = document.getElementById('pro-badge');
+            const logMealCardParent = document.getElementById('log-meal-card-parent');
+            const syncDataCardParent = document.getElementById('sync-data-card-parent');
+            const unlockProButton = document.getElementById('unlock-pro-button');
+
+            if (appState.isProUser) {
+                proBadge.classList.remove('hidden');
+                unlockProButton.style.display = 'none';
+                logMealCardParent.className = 'bg-purple-800 p-6 rounded-2xl hover:bg-purple-700 transition cursor-pointer';
+                syncDataCardParent.className = 'bg-teal-800 p-6 rounded-2xl hover:bg-teal-700 transition cursor-pointer';
+                logMealCardParent.innerHTML = `
+                    <h3 class="font-semibold text-lg mb-2">Log Meal with Photo</h3>
+                    <p class="text-purple-200 text-sm">Click to open your camera and instantly log your meal.</p>
+                    <button id="start-scan-button" class="mt-4 w-full p-2 bg-white text-purple-800 font-semibold rounded-lg text-sm">Start Scanning</button>
+                `;
+                syncDataCardParent.innerHTML = `
+                    <h3 class="font-semibold text-lg mb-2">Sync Activity Data</h3>
+                    <p class="text-teal-200 text-sm">Connect your smart watch to automatically adjust recommendations.</p>
+                    <button class="mt-4 w-full p-2 bg-white text-teal-800 font-semibold rounded-lg text-sm">Connect Device</button>
+                `;
+                 // Add event listener for the newly created button
+                document.getElementById('start-scan-button').addEventListener('click', () => {
+                     document.getElementById('photo-log-modal-section').classList.remove('hidden');
+                });
+            } else {
+                proBadge.classList.add('hidden');
+                unlockProButton.style.display = 'flex';
+                 logMealCardParent.className = 'pro-feature-card p-6 rounded-2xl transition cursor-pointer opacity-60';
+                 syncDataCardParent.className = 'pro-feature-card p-6 rounded-2xl transition cursor-pointer opacity-60';
+
+                logMealCardParent.innerHTML = `
+                    <h3 class="font-semibold text-lg mb-2">Log Meal with Photo</h3>
+                    <p id="log-meal-card-text" class="text-gray-400 text-sm">Use computer vision to track your food intake by simply taking a picture. (Pro Feature)</p>
+                `;
+                 syncDataCardParent.innerHTML = `
+                    <h3 class="font-semibold text-lg mb-2">Sync Activity Data</h3>
+                    <p id="sync-data-card-text" class="text-gray-400 text-sm">Integrate with smart wearables to automatically adjust recommendations. (Pro Feature)</p>
+                `;
+            }
+        }
+        
+        // Chatbot Logic
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        const chatWindow = document.getElementById('chat-window');
+        const typingIndicator = document.getElementById('typing-indicator');
+
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const userMessage = chatInput.value.trim();
+            if (userMessage) {
+                addUserMessage(userMessage);
+                getAiHelpResponse(userMessage);
+                chatInput.value = '';
+            }
+        });
+
+        function addUserMessage(message) {
+            const messageElement = document.createElement('div');
+            messageElement.className = 'flex justify-end';
+            messageElement.innerHTML = `<div class="p-3 rounded-lg bg-indigo-600 max-w-lg"><p>${message}</p></div>`;
+            chatWindow.appendChild(messageElement);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        function addAiMessage(message) {
+            const messageElement = document.createElement('div');
+            messageElement.innerHTML = `<div class="p-3 rounded-lg bg-gray-700 max-w-lg"><p>${message}</p></div>`;
+            chatWindow.appendChild(messageElement);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        async function getAiHelpResponse(userInput) {
+            typingIndicator.classList.remove('hidden');
+            const apiKey = "AIzaSyBeXwBjMXSpEQvly0hjA2nznBXAtD6LCv0"; // Handled by environment
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+            const prompt = `You are a friendly and helpful assistant for a nutrition app called NutriGuide. Your goal is to answer user questions about nutrition, health, fitness, or how to use the app. Keep your answers concise and easy to understand.
+            User's question: "${userInput}"`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+
+                if (!response.ok) {
+                    throw new Error("API response was not ok.");
+                }
+
+                const result = await response.json();
+                const aiResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                
+                if (aiResponse) {
+                    addAiMessage(aiResponse);
+                } else {
+                    addAiMessage("I'm sorry, I couldn't process that. Could you please rephrase?");
+                }
+            } catch (error) {
+                console.error("Chatbot API error:", error);
+                addAiMessage("Sorry, I'm having trouble connecting right now. Please try again later.");
+            } finally {
+                typingIndicator.classList.add('hidden');
+            }
+        }
+
+        // Photo Logging Logic
+        const photoLogModal = document.getElementById('photo-log-modal-section');
+        const closePhotoModalButton = document.getElementById('close-photo-modal-button');
+        const uploadImageButton = document.getElementById('upload-image-button');
+        const imageUploadInput = document.getElementById('image-upload-input');
+        const imagePreview = document.getElementById('image-preview');
+        const analyzeMealButton = document.getElementById('analyze-meal-button');
+        
+        const initialView = document.getElementById('photo-log-initial');
+        const previewView = document.getElementById('photo-log-preview');
+        const loadingView = document.getElementById('photo-log-loading');
+        const resultsView = document.getElementById('photo-log-results');
+        const resultsContent = document.getElementById('analysis-results-content');
+        const errorContent = document.getElementById('analysis-error');
+        const confirmLogButton = document.getElementById('confirm-log-button');
+
+        function resetPhotoModal() {
+            initialView.style.display = 'block';
+            previewView.style.display = 'none';
+            loadingView.style.display = 'none';
+            resultsView.style.display = 'none';
+            errorContent.style.display = 'none';
+            selectedImageFile = null;
+        }
+        
+        closePhotoModalButton.addEventListener('click', () => {
+            photoLogModal.classList.add('hidden');
+            resetPhotoModal();
+        });
+
+        uploadImageButton.addEventListener('click', () => {
+            imageUploadInput.click();
+        });
+
+        imageUploadInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                selectedImageFile = file;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    initialView.style.display = 'none';
+                    previewView.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        analyzeMealButton.addEventListener('click', async () => {
+            if (!selectedImageFile) return;
+
+            previewView.style.display = 'none';
+            loadingView.style.display = 'block';
+
+            const formData = new FormData();
+            formData.append('file', selectedImageFile);
+
+            try {
+                const response = await fetch(`${config.apiBaseUrl}/recognize-food`, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server responded with status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                resultsContent.innerHTML = `
+                    <h3 class="text-xl font-bold text-center text-cyan-400">${data.food_name}</h3>
+                    <div class="grid grid-cols-2 gap-4 mt-4 text-center">
+                        <div>
+                            <p class="text-gray-400 text-sm">Calories</p>
+                            <p class="text-2xl font-bold">${data.calories}</p>
+                        </div>
+                         <div>
+                            <p class="text-gray-400 text-sm">Protein</p>
+                            <p class="text-2xl font-bold">${data.protein}g</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-400 text-sm">Carbs</p>
+                            <p class="text-2xl font-bold">${data.carbs}g</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-400 text-sm">Fats</p>
+                            <p class="text-2xl font-bold">${data.fats}g</p>
+                        </div>
+                    </div>
+                `;
+                errorContent.style.display = 'none';
+            } catch (err) {
+                console.error("Error analyzing image:", err);
+                resultsContent.innerHTML = '';
+                errorContent.textContent = "Could not analyze image. Make sure your local server is running and the food is recognizable.";
+                errorContent.style.display = 'block';
+            } finally {
+                loadingView.style.display = 'none';
+                resultsView.style.display = 'block';
+            }
+        });
+        
+        confirmLogButton.addEventListener('click', () => {
+             showToast("Meal successfully logged from photo!");
+             photoLogModal.classList.add('hidden');
+             resetPhotoModal();
+        });
+
+        // Load the application state from localStorage when the script runs
+        window.addEventListener('DOMContentLoaded', (event) => {
+            loadStateFromLocalStorage();
+            // If the user was logged in, show the main nav
+            if (appState.userProfile) {
+                document.getElementById('main-nav').classList.remove('hidden');
+                showSection('home-page-section');
+                updateDailyHighlights(appState.userProfile);
+                updateAiCard();
+                updateProFeatures();
+            } else {
+                 showSection('login-section');
+            }
+        });
+
+    </script>
 </body>
 </html>
 
