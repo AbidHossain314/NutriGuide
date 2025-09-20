@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriGuide - AI Nutrition Planner</title>
+
+    <!-- External Libraries & Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Link to your custom stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="text-gray-200">
+
+    <!-- Main container for the entire application -->
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+        
+        <!-- =================================================================
+             NAVIGATION BAR
+             Initially hidden, becomes visible after a successful login.
+        ================================================================== -->
+        <nav id="main-nav" class="hidden flex items-center justify-between mb-8">
+            <!-- Left Side: Logo, Title, and Pro Badge -->
+            <div class="flex items-center gap-3">
+                <img src="https://i.ibb.co/2fjvvGQ/Gemini-Generated-Image-st6wocst6wocst6w.png" alt="NutriGuide Logo" class="h-10 w-10">
+                <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">NutriGuide</h1>
+                <span id="pro-badge" class="hidden text-xs font-bold text-purple-400 bg-purple-900/50 px-2 py-1 rounded-full">PRO</span>
+            </div>
+            <!-- Center Links (for medium screens and up) -->
+            <div class="hidden md:flex items-center gap-8 text-gray-300 font-medium">
+                <a href="#" id="home-link" class="hover:text-indigo-400 transition-colors">Home</a>
+                <a href="#" class="hover:text-indigo-400 transition-colors">About</a>
+                <a href="#" id="help-link" class="hover:text-indigo-400 transition-colors">Help</a>
+            </div>
+            <!-- Right Side: Pro Button & Logout -->
+            <div class="flex items-center gap-4">
+                <button class="pro-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 24"><path d="m18 0 8 12 10-8-4 20H4L0 4l10 8 8-12z"></path></svg>
+                    Unlock Pro
+                </button>
+                <button onclick="logout()" class="flex items-center gap-2 px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-700 hover:text-white transition-colors font-semibold text-sm">
+                    <span>Logout</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main content area where different sections will be displayed -->
+        <main>
+            <!-- =================================================================
+                 LOGIN SECTION - The first view a user sees.
+            ================================================================== -->
+            <section id="login-section" class="view-section">
+                <div class="bg-gray-800 p-6 md:p-8 rounded-2xl shadow-2xl shadow-indigo-900/20 max-w-md mx-auto">
+                    <h2 class="text-2xl font-semibold mb-2 text-center">Welcome to NutriGuide</h2>
+                    <p class="text-gray-400 mb-6 text-center">Please log in to access your personalized plan.</p>
+                    <form class="form" id="login-form">
+                        <span class="input-span"><label for="email" class="label">Email</label><input type="email" name="email" id="email" required></span>
+                        <span class="input-span"><label for="password" class="label">Password</label><input type="password" name="password" id="password" required></span>
+                        <span class="span"><a href="#">Forgot password?</a></span>
+                        <input class="submit" type="submit" value="Log in">
+                        <span class="span">Don't have an account? <a href="#">Sign up</a></span>
+                    </form>
+                </div>
+            </section>
+            
+            <!-- =================================================================
+                 HOME PAGE SECTION - Main dashboard after login.
+            ================================================================== -->
+            <section id="home-page-section" class="view-section hidden">
+                <!-- Welcome Banner -->
+                <div class="h-64 rounded-2xl bg-cover bg-center flex flex-col justify-end p-8" style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url('https://i.ibb.co/1Yh6ZWm/2142347-2560x1600-desktop-hd-healthy-food-background-photo.jpg');">
+                    <h2 class="text-3xl font-bold text-white">Welcome Back!</h2>
+                    <p class="text-gray-300">Ready to take control of your nutrition today?</p>
+                </div>
+
+                <!-- Interactive "Glass" Cards -->
+                <div class="my-8">
+                    <div class="glass-container">
+                        <div id="daily-highlights-card" data-text="Daily Highlights" style="--r:-15;" class="glass">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M12 8a4 4 0 1 1-8 0 4 4 0 0 1 8 0M8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0m0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13m8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5M3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8m10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0m-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0m9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707M4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708"/></svg>
+                        </div>
+                        <div id="tip-of-day-card" data-text="Tip of the Day" style="--r:5;" class="glass">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13a.5.5 0 0 1 0 1 .5.5 0 0 1 0 1l-.224.447a1 1 0 0 1-.894.553H6.618a1 1 0 0 1-.894-.553L5.5 15a.5.5 0 0 1 0-1 .5.5 0 0 1 0-1 .5.5 0 0 1-.46-.302l-.761-1.77a2 2 0 0 0-.453-.618A5.98 5.98 0 0 1 2 6m6-5a5 5 0 0 0-3.479 8.592c.263.254.514.564.676.941L5.83 12h4.342l.632-1.467c.162-.377.413-.687.676-.941A5 5 0 0 0 8 1"/></svg>
+                        </div>
+                        <div id="community-card" data-text="Community" style="--r:25;" class="glass">
+                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/></svg>
+                        </div>
+                    </div>
+                    <!-- Daily Highlights Content (placeholder until profile is complete) -->
+                    <div id="daily-highlights-content" class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center p-6 bg-gray-800 rounded-2xl">
+                       <p class="col-span-full text-gray-400">Complete your profile with the AI Nutritionist to see your personalized stats here!</p>
+                    </div>
+                </div>
+
+                <!-- Main Action Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+                    <!-- AI Nutritionist Card -->
+                    <div id="ai-nutritionist-card" class="bg-indigo-700 p-6 rounded-2xl hover:bg-indigo-600 transition cursor-pointer">
+                        <h3 class="font-semibold text-lg mb-2">AI Nutritionist</h3>
+                        <p class="text-indigo-200 text-sm">Generate your hyper-personalized diet plan based on your unique health profile.</p>
+                        <button id="ai-card-button" class="mt-4 w-full p-2 bg-white text-indigo-700 font-semibold rounded-lg">Generate Your Plan</button>
+                    </div>
+                    <!-- Progress Dashboard Card -->
+                     <div id="view-progress-card" class="bg-cyan-800 p-6 rounded-2xl hover:bg-cyan-700 transition cursor-pointer">
+                        <h3 class="font-semibold text-lg mb-2">View Progress Dashboard</h3>
+                        <p class="text-cyan-200 text-sm">Monitor your journey, track your progress, and stay motivated.</p>
+                    </div>
+                    <!-- Pro Feature: Log Meal -->
+                    <div id="log-meal-card-parent" class="pro-feature-card p-6 rounded-2xl transition cursor-pointer opacity-60">
+                         <h3 class="font-semibold text-lg mb-2">Log Meal with Photo</h3>
+                        <p id="log-meal-card-text" class="text-gray-400 text-sm">Use computer vision to track your food intake by simply taking a picture. (Pro Feature)</p>
+                    </div>
+                    <!-- Pro Feature: Sync Data -->
+                    <div id="sync-data-card-parent" class="pro-feature-card p-6 rounded-2xl transition cursor-pointer opacity-60">
+                        <h3 class="font-semibold text-lg mb-2">Sync Activity Data</h3>
+                        <p id="sync-data-card-text" class="text-gray-400 text-sm">Integrate with smart wearables to automatically adjust recommendations. (Pro Feature)</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- =================================================================
+                 ONBOARDING FORM - Multi-step form for new users.
+            ================================================================== -->
+            <section id="onboarding-section" class="view-section hidden">
+                <div class="bg-gray-800 p-6 md:p-8 rounded-2xl shadow-2xl shadow-indigo-900/20 relative">
+                    <!-- Back Button to return to Home Page -->
+                    <div class="back-button-wrapper">
+                      <button class="styled-button" onclick="showHomePage()">
+                        <div class="button-box">
+                          <span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span>
+                          <span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span>
+                        </div>
+                      </button>
+                    </div>
+                    <!-- Form Container -->
+                    <form id="nutrition-form">
+                        <!-- Step 1: Personal Details -->
+                        <div id="step-1" class="form-step">
+                            <h2 class="text-2xl font-semibold mb-2 text-center">Let's Get to Know You</h2>
+                            <p class="text-gray-400 mb-6 text-center">Basic information helps us calculate your metabolic profile.</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <input type="text" id="name" placeholder="Full Name" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition" required>
+                                <input type="number" id="age" placeholder="Age" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition" required>
+                                <input type="number" id="height" placeholder="Height (cm)" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition" required>
+                                <input type="number" id="weight" placeholder="Weight (kg)" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition" required>
+                            </div>
+                            <div class="text-right mt-6"><button type="button" onclick="nextStep(2)" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-semibold transition">Next</button></div>
+                        </div>
+
+                        <!-- Step 2: Lifestyle -->
+                        <div id="step-2" class="form-step hidden">
+                            <h2 class="text-2xl font-semibold mb-2 text-center">Your Lifestyle</h2>
+                            <p class="text-gray-400 mb-6 text-center">This helps us estimate your daily energy needs.</p>
+                            <div class="space-y-3">
+                                <select id="activity-level" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                                    <option value="sedentary">Sedentary (little or no exercise)</option>
+                                    <option value="light">Lightly Active (light exercise/sports 1-3 days/week)</option>
+                                    <option value="moderate">Moderately Active (moderate exercise/sports 3-5 days/week)</option>
+                                    <option value="active">Very Active (hard exercise/sports 6-7 days a week)</option>
+                                    <option value="extra-active">Extra Active (very hard exercise/sports & physical job)</option>
+                                </select>
+                            </div>
+                            <div class="flex justify-between mt-6">
+                                <button type="button" onclick="prevStep(1)" class="px-6 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg font-semibold transition">Back</button>
+                                <button type="button" onclick="nextStep(3)" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-semibold transition">Next</button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Dietary Preferences -->
+                        <div id="step-3" class="form-step hidden">
+                            <h2 class="text-2xl font-semibold mb-2 text-center">Food Preferences & Restrictions</h2>
+                            <p class="text-gray-400 mb-6 text-center">Tell us what you like, dislike, and what you can't eat.</p>
+                             <div class="space-y-4">
+                                <select id="dietary-preference" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                                    <option value="anything">No specific preference</option>
+                                    <option value="vegetarian">Vegetarian</option>
+                                    <option value="vegan">Vegan</option>
+                                    <option value="pescatarian">Pescatarian</option>
+                                    <option value="paleo">Paleo</option>
+                                </select>
+                                <input type="text" id="allergies" placeholder="List any allergies (e.g., peanuts, gluten, dairy)" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                                <input type="text" id="cultural-preference" placeholder="Any cultural/regional diet? (e.g., Mediterranean, Indian)" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                            </div>
+                            <div class="flex justify-between mt-6">
+                                <button type="button" onclick="prevStep(2)" class="px-6 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg font-semibold transition">Back</button>
+                                <button type="button" onclick="nextStep(4)" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-semibold transition">Next</button>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Health Goals -->
+                        <div id="step-4" class="form-step hidden">
+                            <h2 class="text-2xl font-semibold mb-2 text-center">What's Your Primary Goal?</h2>
+                            <p class="text-gray-400 mb-6 text-center">We'll tailor your plan to help you achieve it.</p>
+                            <div class="space-y-3">
+                               <select id="health-goal" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                                    <option value="weight-loss">Weight Loss</option>
+                                    <option value="muscle-gain">Muscle Gain</option>
+                                    <option value="maintenance">Health Maintenance</option>
+                                    <option value="improve-energy">Improve Energy Levels</option>
+                                </select>
+                            </div>
+                            <div class="flex justify-between mt-6">
+                                <button type="button" onclick="prevStep(3)" class="px-6 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg font-semibold transition">Back</button>
+                                <button type="submit" class="px-6 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-semibold transition flex items-center justify-center">Generate My Plan</button>
+                            </div>
+                            <div id="form-error-message" class="text-red-400 text-sm mt-4 text-center h-4"></div>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- =================================================================
+                 MEAL PLAN SECTION - Displays the generated meal plan.
+            ================================================================== -->
+            <section id="meal-plan-section" class="view-section hidden">
+                <div class="bg-gray-800 p-6 md:p-8 rounded-2xl shadow-2xl shadow-indigo-900/20 mb-8">
+                    <h2 class="text-2xl font-semibold mb-4">Today's Meal Plan</h2>
+                    <div id="allergy-note" class="mb-4 p-3 bg-yellow-900/50 text-yellow-300 border border-yellow-700 rounded-lg hidden"></div>
+                    <div id="meal-plan-checklist" class="space-y-6">
+                        <!-- Meal checklist items are dynamically injected here -->
+                    </div>
+                    <div class="text-center mt-8">
+                        <button id="log-meals-button" class="px-8 py-3 bg-green-600 hover:bg-green-700 rounded-lg font-semibold transition">Log Today's Meals</button>
+                    </div>
+                </div>
+                 <div class="back-button-wrapper-bottom">
+                    <button class="styled-button" onclick="showHomePage()"><div class="button-box"><span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span><span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span></div></button>
+                </div>
+            </section>
+            
+            <!-- =================================================================
+                 PROGRESS DASHBOARD SECTION - Shows charts and history.
+            ================================================================== -->
+            <section id="progress-dashboard-section" class="view-section hidden">
+                 <div id="dashboard-content" class="bg-gray-800 p-6 md:p-8 rounded-2xl shadow-2xl shadow-indigo-900/20 mb-8">
+                    <!-- Dashboard content is dynamically rendered here -->
+                 </div>
+                 <div class="back-button-wrapper-bottom">
+                     <button class="styled-button" onclick="showHomePage()"><div class="button-box"><span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span><span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span></div></button>
+                </div>
+            </section>
+
+            <!-- =================================================================
+                 PRO/UPGRADE SECTION - Displays subscription plans.
+            ================================================================== -->
+            <section id="pro-section" class="view-section hidden">
+                <h2 class="text-3xl font-bold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">Choose Your Plan</h2>
+                <div class="flex flex-col md:flex-row justify-center items-center gap-8">
+                    <!-- Free Plan Card -->
+                    <div class="plan-card">
+                      <div class="card__border"></div>
+                      <div class="card_title__container"><span class="card_title">Starter Plan</span><p class="card_paragraph">Your journey to a healthier lifestyle begins here, for free.</p></div>
+                      <hr class="line">
+                      <ul class="card__list">
+                        <li class="card__list_item"><span class="check"><svg viewBox="0 0 16 16" class="check_svg"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path></svg></span><span class="list_text">Personalized Meal Plan</span></li>
+                        <li class="card__list_item"><span class="check"><svg viewBox="0 0 16 16" class="check_svg"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path></svg></span><span class="list_text">BMI & Calorie Tracking</span></li>
+                        <li class="card__list_item"><span class="check"><svg viewBox="0 0 16 16" class="check_svg"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path></svg></span><span class="list_text">Community Access</span></li>
+                         <li class="card__list_item"><span class="cross"><svg viewBox="0 0 16 16" class="cross_svg"><path fill-rule="evenodd" d="M4.28 3.22a.75.75 0 0 0-1.06 1.06L6.94 8l-3.72 3.72a.75.75 0 1 0 1.06 1.06L8 9.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L9.06 8l3.72-3.72a.75.75 0 0 0-1.06-1.06L8 6.94 4.28 3.22Z" clip-rule="evenodd"></path></svg></span><span class="list_text disabled">Advanced Progress Analytics</span></li>
+                        <li class="card__list_item"><span class="cross"><svg viewBox="0 0 16 16" class="cross_svg"><path fill-rule="evenodd" d="M4.28 3.22a.75.75 0 0 0-1.06 1.06L6.94 8l-3.72 3.72a.75.75 0 1 0 1.06 1.06L8 9.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L9.06 8l3.72-3.72a.75.75 0 0 0-1.06-1.06L8 6.94 4.28 3.22Z" clip-rule="evenodd"></path></svg></span><span class="list_text disabled">Wearable Device Sync</span></li>
+                        <li class="card__list_item"><span class="cross"><svg viewBox="0 0 16 16" class="cross_svg"><path fill-rule="evenodd" d="M4.28 3.22a.75.75 0 0 0-1.06 1.06L6.94 8l-3.72 3.72a.75.75 0 1 0 1.06 1.06L8 9.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L9.06 8l3.72-3.72a.75.75 0 0 0-1.06-1.06L8 6.94 4.28 3.22Z" clip-rule="evenodd"></path></svg></span><span class="list_text disabled">Photo Meal Logging</span></li>
+                      </ul>
+                      <button class="card-button" disabled style="opacity: 0.5; cursor: not-allowed;">Current Plan</button>
+                    </div>
+                    <!-- Premium Plan Card -->
+                    <div class="plan-card">
+                      <div class="card__border"></div>
+                      <div class="card_title__container"><span class="card_title">NutriGuide Pro</span><p class="card_paragraph">Unlock your full potential with advanced tools and unlimited access.</p></div>
+                      <hr class="line">
+                      <ul class="card__list">
+                        <li class="card__list_item"><span class="check"><svg viewBox="0 0 16 16" class="check_svg"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path></svg></span><span class="list_text">All Starter Features</span></li>
+                        <li class="card__list_item"><span class="check"><svg viewBox="0 0 16 16" class="check_svg"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path></svg></span><span class="list_text">Advanced Progress Analytics</span></li>
+                        <li class="card__list_item"><span class="check"><svg viewBox="0 0 16 16" class="check_svg"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path></svg></span><span class="list_text">Wearable Device Sync</span></li>
+                        <li class="card__list_item"><span class="check"><svg viewBox="0 0 16 16" class="check_svg"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path></svg></span><span class="list_text">Photo Meal Logging</span></li>
+                         <li class="card__list_item"><span class="check"><svg viewBox="0 0 16 16" class="check_svg"><path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path></svg></span><span class="list_text">Priority Support</span></li>
+                      </ul>
+                      <button class="card-button" id="upgrade-now-button">Upgrade Now</button>
+                    </div>
+                </div>
+                <div class="back-button-wrapper-bottom">
+                     <button class="styled-button" onclick="showHomePage()"><div class="button-box"><span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span><span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span></div></button>
+                </div>
+            </section>
+            
+            <!-- =================================================================
+                 DAILY HIGHLIGHTS DETAIL SECTION
+            ================================================================== -->
+            <section id="daily-highlights-section" class="view-section hidden">
+                <div class="bg-gray-800 p-6 md:p-8 rounded-2xl shadow-2xl shadow-indigo-900/20 mb-8">
+                     <h2 class="text-2xl font-semibold mb-4 text-center">Your Daily Highlights</h2>
+                     <div id="daily-highlights-details-content" class="text-center text-gray-400">
+                         <p>This page will show a detailed breakdown of your nutritional targets and achievements for the day. Generate a plan to see more!</p>
+                     </div>
+                </div>
+                 <div class="back-button-wrapper-bottom">
+                     <button class="styled-button" onclick="showHomePage()"><div class="button-box"><span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span><span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span></div></button>
+                </div>
+            </section>
+
+            <!-- =================================================================
+                 TIP OF THE DAY SECTION
+            ================================================================== -->
+             <section id="tip-of-the-day-section" class="view-section hidden">
+                <div class="bg-gray-800 p-6 md:p-8 rounded-2xl shadow-2xl shadow-indigo-900/20 mb-8">
+                     <h2 class="text-2xl font-semibold mb-4 text-center">💡 Tip of the Day</h2>
+                     <div class="text-center text-gray-300 bg-gray-700 p-6 rounded-lg">
+                        <p class="text-lg">"Hydration is key! Drinking enough water throughout the day can boost your metabolism and help your body absorb nutrients more efficiently. Aim for at least 8 glasses."</p>
+                     </div>
+                </div>
+                 <div class="back-button-wrapper-bottom">
+                     <button class="styled-button" onclick="showHomePage()"><div class="button-box"><span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span><span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span></div></button>
+                </div>
+            </section>
+
+            <!-- =================================================================
+                 COMMUNITY SECTION
+            ================================================================== -->
+            <section id="community-section" class="view-section hidden">
+                <div class="bg-gray-800 p-6 md:p-8 rounded-2xl shadow-2xl shadow-indigo-900/20 mb-8">
+                     <h2 class="text-2xl font-semibold mb-4 text-center">NutriGuide Community</h2>
+                     <div class="text-center text-gray-400">
+                         <p>Coming Soon! A place to share recipes, celebrate progress, and connect with others on a similar health journey.</p>
+                     </div>
+                </div>
+                 <div class="back-button-wrapper-bottom">
+                     <button class="styled-button" onclick="showHomePage()"><div class="button-box"><span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span><span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span></div></button>
+                </div>
+            </section>
+
+            <!-- =================================================================
+                 HELP SECTION
+            ================================================================== -->
+            <section id="help-section" class="view-section hidden">
+                <div class="bg-gray-800 p-6 md:p-8 rounded-2xl shadow-2xl shadow-indigo-900/20 mb-8">
+                     <h2 class="text-2xl font-semibold mb-4 text-center">Help & FAQ</h2>
+                     <div class="space-y-4 text-gray-300">
+                        <div>
+                            <h3 class="font-semibold text-lg">How is my calorie target calculated?</h3>
+                            <p class="text-gray-400">We use the Mifflin-St Jeor equation, a widely accepted formula, combined with your activity level to estimate your daily energy needs. We then adjust this number based on your health goal (weight loss, gain, or maintenance).</p>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-lg">Can I regenerate my meal plan?</h3>
+                            <p class="text-gray-400">Yes! Simply go back to the home page and click the "View Your Plan" button. You'll be taken back to the onboarding form, where you can adjust your preferences and generate a new plan.</p>
+                        </div>
+                         <div>
+                            <h3 class="font-semibold text-lg">What do I get with NutriGuide Pro?</h3>
+                            <p class="text-gray-400">NutriGuide Pro unlocks advanced features like detailed progress analytics, the ability to sync data from wearable devices, and our upcoming photo-based meal logging feature.</p>
+                        </div>
+                     </div>
+                </div>
+                 <div class="back-button-wrapper-bottom">
+                     <button class="styled-button" onclick="showHomePage()"><div class="button-box"><span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span><span class="button-elem"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></span></div></button>
+                </div>
+            </section>
+
+        </main>
+        
+        <!-- =================================================================
+             MODALS & NOTIFICATIONS
+        ================================================================== -->
+        <!-- Payment Modal -->
+        <section id="payment-modal-section" class="fixed inset-0 bg-black/80 flex items-center justify-center hidden z-50">
+            <!-- Content for this modal is omitted for brevity. -->
+        </section>
+        
+        <!-- Toast Notification -->
+        <div id="toast-notification" class="fixed top-20 right-8 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg opacity-0 transition-opacity duration-500 z-50"></div>
+    </div>
+    
+    <!-- Link to your main application logic script -->
+    <script src="script.js"></script>
+</body>
+</html>
+
